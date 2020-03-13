@@ -1,5 +1,7 @@
 import java.io.IOException;
 import java.util.logging.Logger;
+import java.net.InetSocketAddress;
+import com.sun.net.httpserver.HttpServer;
 
 class Main {
   private final static Logger log = Logger.getLogger(Main.class.getName());
@@ -50,12 +52,14 @@ class Main {
     
 
     Main.log.info("Running on port -> " + port);
-    HTTPTikTacToeServer server = HTTPTikTacToeServer.createHttpServer(port);
+    HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+    server.createContext("/", new TemplateHandler("static/index.html"));
+    server.createContext("/static/", new StaticHandler("/static/"));
 
     // Add shutdown hook to stop the server
     Runtime.getRuntime().addShutdownHook(new Thread(() -> {
       Main.log.info("Shutting down server...");
-      server.dispose();
+      server.stop(0);
     }));
 
     // Finally, start the server!
