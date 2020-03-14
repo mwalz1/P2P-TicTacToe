@@ -29,16 +29,11 @@ class GameManager {
     }
 
     GameManager.log.info("Successfully connected to a client!");
-    Utils.sendSuccess(exchange);
-    this.initGame();
+    Utils.sendSseStream(exchange);
 
-    this.connection.ifPresent((connection) -> {
-      GameManager.log.info("Sending hello world 10 times!!");
-      for (int i = 0; i < 10; i++) {
-        GameManager.log.info("Send " + i);
-        connection.send("Hello, world!\n");
-      }
-    });
+    // this.initGame();
+    final OutputStream body = exchange.getResponseBody();
+    this.createMessageThread(body);
   }
 
   public void startClient(HttpExchange exchange) {
@@ -66,27 +61,17 @@ class GameManager {
     this.createMessageThread(body);
   }
 
-  public void testSse(HttpExchange exchange) {
-    Utils.sendSseStream(exchange);
-    
-    final OutputStream body = exchange.getResponseBody();
-    for (int i = 0; i < 10; i++) {
-      try {
-        body.write("data: Hello, world!\n\n".getBytes());
-        body.flush();
-      } catch (IOException e) {
-        GameManager.log.severe(e.toString());
-      }
-    }
-  }
-
   public void move(HttpExchange exchange) {
-    //
+    Utils.sendSuccess(exchange);
   }
 
   public void send(HttpExchange exchange) {
-    this.connection.ifPresent((connection) -> {
-      connection.send(exchange.getRequestBody().toString());
+    this.connection.ifPresentOrElse((connection) -> {
+      String body = Utils.inputStreamToString(exchange.getRequestBody());
+      connection.send(body);
+      Utils.sendSuccess(exchange);
+    }, () -> {
+      Utils.sendResponse(exchange, 400, "No connection present.");
     });
   }
 

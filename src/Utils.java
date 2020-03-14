@@ -1,14 +1,22 @@
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.Headers;
 
 class Utils {
   private final static Logger log = Logger.getLogger(Utils.class.getName());
+
+  public static String inputStreamToString(InputStream is) {
+    return new BufferedReader(new InputStreamReader(is)).lines().collect(Collectors.joining("\n"));
+  }
 
   public static int parsePort(String s, int defaultValue) {
     try {

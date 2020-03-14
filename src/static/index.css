@@ -5,3 +5,42 @@
 .flex-column {
   flex-direction: column;
 }
+
+.justify-center {
+  justify-content: center;
+}
+
+.align-center {
+  align-items: center;
+}
+
+.flex-grow {
+  flex-grow: 1;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.output {
+  width: 400px;
+  background: #dadada;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.me, .them {
+  display: flex;
+}
+
+.me div::before {
+  content: "ME: ";
+}
+
+.them div::before {
+  content: "THEM: ";
+}
+
+.me {
+  justify-content: flex-end;
+}

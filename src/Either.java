@@ -29,9 +29,10 @@ public class Either<L, R> {
   final private Optional<L> left;
   final private Optional<R> right;
 
+  // TODO Can be null, put that in comments
   private Either(L left, R right) {
-    this.left = Optional.of(left);
-    this.right = Optional.of(right);
+    this.left = Optional.ofNullable(left);
+    this.right = Optional.ofNullable(right);
   }
 
   public void ifRight(Consumer<? super R> consumer) {

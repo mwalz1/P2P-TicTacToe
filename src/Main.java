@@ -26,7 +26,7 @@ class Main {
     server.createContext("/api/start-server", manager::startServer);
     server.createContext("/api/start-client", manager::startClient);
     server.createContext("/api/move", manager::move);
-    server.createContext("/api/test", manager::testSse);
+    server.createContext("/api/send", manager::send);
 
     // Add shutdown hook to stop the server
     Runtime.getRuntime().addShutdownHook(new Thread(() -> {

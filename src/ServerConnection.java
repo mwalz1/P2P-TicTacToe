@@ -11,7 +11,8 @@ public class ServerConnection extends Connection {
     Socket socket = null;
     try {
       socket = new Socket(host, port);
-      socket.setSoTimeout(10000);
+      // 
+      socket.setSoTimeout(100000);
     } catch (UnknownHostException e) {
       // TODO remove these
       ServerConnection.log.severe("Unknown host: " + host);

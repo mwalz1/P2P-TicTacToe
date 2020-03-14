@@ -21,7 +21,7 @@ public class ClientConnection extends Connection {
     Socket socket = null;
     try {
       socket = server.accept();
-      socket.setSoTimeout(10000);
+      socket.setSoTimeout(100000);
     } catch (IOException e) {
       ClientConnection.log.severe("Accept failed: " + e.getMessage());
       System.exit(-1);
