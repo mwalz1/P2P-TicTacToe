@@ -26,7 +26,7 @@ java Main
 Ideally, you are on a Linux based system. In this situation, you can easily use the following command to start a hot reload server.
 ```
 # -r because the child process is persistent and -s because we are passing in a shell command
-$ ls src/*.java | entr -rs 'make && make serve'
+$ ls src/**/*.java src/**/*.html src/**/*.js src/**/*.css | entr -rs 'make && make serve'
 ```
 
 Note that you will likely have to install [entr](http://eradman.com/entrproject/) before you can run the following command. It can be easily downloaded and installed using the link above or installed using your system's package manager. The following subsections show the commands for a few operating systems.

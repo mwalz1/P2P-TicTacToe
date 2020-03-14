@@ -15,7 +15,7 @@ class StaticHandler extends FileHandler {
   protected Path getPath(HttpExchange exchange) {
     final URI requestURI = exchange.getRequestURI();
     final String filePath = requestURI.getPath();
-    // .substring(1) removes the initial "/" character
+    // replaceFirst removes the rootURI from the beginning of the string since we don't care about it
     return Paths.get("static", filePath.replaceFirst("^" + this.rootURI, ""));
   }
 }

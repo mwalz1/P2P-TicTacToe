@@ -1,29 +1,25 @@
-import java.net.Socket;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.logging.Logger;
 
-public class ServerConnection {
-  public static ServerConnection createServer(int port) {
-    ServerSocket server = null;
-    try {
-      server = new ServerSocket(port);
-      System.out.println("Port opened on port " + port);
-    } catch (IOException e) {
-      ServerConnection.log.severe("Could not listen on port:  " + port);
-      System.exit(-1);
-    }
-
+public class ServerConnection extends Connection {
+  public static ServerConnection createConnection(String host, int port) throws UnknownHostException, IOException {
     Socket socket = null;
     try {
-      socket = server.accept();
-    } catch (IOException e) {
-      ServerConnection.log.severe("Accept failed: " + e.getMessage());
+      socket = new Socket(host, port);
+      socket.setSoTimeout(10000);
+    } catch (UnknownHostException e) {
+      // TODO remove these
+      ServerConnection.log.severe("Unknown host: " + host);
       System.exit(-1);
-    }
+    } catch (IOException e) {
+      ServerConnection.log.severe("Unable to get I/O connection to: " + host + " on port: " + port);
+      System.exit(-1);
+    }    
 
     BufferedReader in = null;
     PrintWriter out = null;
@@ -32,50 +28,14 @@ public class ServerConnection {
       out = new PrintWriter(socket.getOutputStream(), true /* autoFlush */);
     } catch (IOException e) {
       ServerConnection.log.severe("Unable to get reader/writer");
-      System.exit(-1);
     }
 
-    return new ServerConnection(socket, in, out, server);
+    return new ServerConnection(socket, in, out);
   }
 
-  private Socket socket;
-  private BufferedReader in;
-  private PrintWriter out;
-  private ServerSocket server;
   private final static Logger log = Logger.getLogger(ServerConnection.class.getName());
 
-  private ServerConnection(Socket socket, BufferedReader in, PrintWriter out, ServerSocket server) {
-    this.socket = socket;
-    this.in = in;
-    this.out = out;
-    this.server = server;
-  }
-
-  public String receive() {
-    String text = null;
-    try {
-      text = in.readLine();
-      log.fine("RECEIVING: " + text);
-    } catch (IOException e) {
-      log.severe("Unable to read from " + e.getMessage());
-    }
-
-    return text;
-  }
-
-  public void send(String output) {
-    log.fine("SENDING: " + output);
-    out.println(output); // Doesn't ever throw IO exception
-  }
-
-  public void dispose() {
-    try {
-      server.close();
-      out.close();
-      in.close();
-      socket.close();
-    } catch (IOException e) {
-      log.severe("Unable to close server, writer, reader, or socket: " + e.getMessage());
-    }
+  private ServerConnection(Socket socket, BufferedReader in, PrintWriter out) {
+    super(socket, in, out);
   }
 }

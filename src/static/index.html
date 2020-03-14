@@ -1,11 +1,47 @@
 <!DOCTYPE html>
 
-<head>
-  <title>Tic Tac Toe P2P</title>
-</head>
+<html>
+  <head>
+    <title>Tic Tac Toe</title>
+    <link rel="stylesheet" type="text/css" href="/static/index.css">
+  </head>
+  
+  <body>
+    <div class="flex">
+      
+      <!-- Hosting column -->
+      <div class="flex flex-column">
+        <form>
+          <label for="port">PORT:</label>
+          <input type="number" min="1025" id="hosting-port" name="port" value="8000"><br><br>
+        </form>
+        <button onclick="hostGame()">
+          Host Game
+        </button>
 
-<body>
-  <div>
-    HELLO
-  </div>
-</body>
+        <input type="number" min="1025" id="host-send-input"><br><br>
+        <button onclick="send()">
+          Send
+        </button>
+      </div>
+
+      <!-- Client column -->
+      <div class="flex flex-column">
+        <form>
+          <label for="host">HOST:</label>
+          <input type="text" id="finding-host" name="host" value="localhost"><br><br>
+          <label for="port">PORT:</label>
+          <input type="number" min="1025" id="finding-port" name="port" value="8000"><br><br>
+        </form>
+        <button onclick="findGame()">
+          Find Game
+        </button>
+
+        <div id="find-output"></div>
+      </div>
+
+    </div>
+  </body>
+  <script src="/static/index.js"></script>
+</html>
+
