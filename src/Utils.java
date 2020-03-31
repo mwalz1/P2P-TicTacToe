@@ -1,10 +1,13 @@
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -12,11 +15,31 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.Headers;
 
 class Utils {
+  private final static String LETTERS_NUMBERS = 
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+    "0123456789";
+
   private final static Logger log = Logger.getLogger(Utils.class.getName());
 
   public static String inputStreamToString(InputStream is) {
     return new BufferedReader(new InputStreamReader(is)).lines().collect(Collectors.joining("\n"));
   }
+
+  public static String getAlphaNumericString(int n) { 
+    // create StringBuffer size of AlphaNumericString 
+    StringBuilder sb = new StringBuilder(n);
+    for (int i = 0; i < n; i++) {
+      // generate a random number between 
+      // 0 to AlphaNumericString variable length 
+      int index = (int)(Utils.LETTERS_NUMBERS.length() * Math.random()); 
+
+      // add Character one by one in end of sb 
+      sb.append(Utils.LETTERS_NUMBERS.charAt(index)); 
+    } 
+
+    return sb.toString(); 
+  } 
+  
 
   public static int parsePort(String s, int defaultValue) {
     try {
@@ -44,12 +67,66 @@ class Utils {
     return Utils.queryToMap(exchange.getRequestURI().getQuery());
   }
 
-  public static void sendSuccess(HttpExchange exchange) {
-    Utils.sendResponse(exchange, 200, "");
+  public static String mapToJSONString(Map<String, String> map) {
+    StringBuilder b = new StringBuilder();
+    b.append("{ ");
+    boolean first = true;
+    for (String key : map.keySet()) {
+      if (!first) {
+        b.append(", ");
+      }
+
+      b.append(String.format("\"%s\": \"%s\"", key, map.get(key)));
+      first = false;
+    }
+
+    b.append(" }");
+    return b.toString();
   }
 
-  public static void sendResponse(HttpExchange exchange, String response) {
-    Utils.sendResponse(exchange, 200, response);
+  public static void sendSuccess(HttpExchange exchange, Optional<Map<String, String>> response) {
+    String data = "null";
+    try {
+      data = Utils.mapToJSONString(response.get());
+    } catch (NoSuchElementException e) {
+      // do nothing
+    }
+
+    StringBuilder body = new StringBuilder();
+    body.append("{ ");
+    body.append("\"result\": \"success\"");
+    body.append(String.format("\"data\": %s", data));
+    body.append(" }");
+
+    Utils.sendResponse(exchange, 200, body.toString());
+  }
+
+  public static void sendSuccess(HttpExchange exchange) {
+    Utils.sendSuccess(exchange, Optional.empty());
+  }
+
+  public static void sendSuccess(HttpExchange exchange, Map<String, String> response) {
+    Utils.sendSuccess(exchange, Optional.of(response));
+  }
+
+  public static void tryToClose(Closeable o) {
+    try {
+      o.close();
+    } catch (IOException e) {
+      // ignore
+    }
+  }
+
+  // public static <E extends Enum<E>> List<String> enumValuesAsStrings(Class<E> e) {
+  //   return Stream.of(e.getEnumConstants()).map(Enum::name).collect(Collectors.toList());
+  // }
+
+  public static <T> T getOrThrow(Optional<T> optional, String errorCode) {
+    try {
+      return optional.get();
+    } catch (NoSuchElementException e) {
+      throw new HttpError400(errorCode);
+    }
   }
 
   public static void sendSseStream(HttpExchange exchange) {

@@ -1,7 +1,9 @@
+'use strict';
+
 /**
  * @type {HTMLInputElement}
  */
-let hostingPort;
+let accessCodeDisplay;
 /**
  * @type {HTMLInputElement}
  */
@@ -19,8 +21,13 @@ let hostSendInput
  */
 let output;
 
+/**
+ * @type {{ accessCode: string, gameCode: string }}
+ */
+let gameState
+
 window.onload = () => {
-  hostingPort = document.getElementById("hosting-port");
+  accessCodeDisplay = document.getElementById("access-code-display");
   findingHost = document.getElementById("finding-host");
   findingPort = document.getElementById("finding-port");
   hostSendInput = document.getElementById("host-send-input");
@@ -47,8 +54,18 @@ const createSource = (url) => {
 }
 
 const hostGame = async () => {
-  const port = hostingPort.value;
-  createSource(`/api/start-server?port=${port}`);
+  // createSource(``);
+  try {
+    const response = await fetch('/api/start-server');
+    gameState = await response.json();
+    console.log("Starting game: ", gameState);
+    accessCodeDisplay.textContent = gameState.accessCode;
+  } catch (e) {
+    console.warn(e);
+    return;
+  }
+
+  // createSource(`/api/join-as-host?gameCode?=${gameState.gameCode}`);
 }
 
 const findGame = () => {

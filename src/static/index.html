@@ -19,41 +19,26 @@
       <h3>Connection Setup</h1>
 
       <!-- Hosting Row -->
-      <form>
-        <div class="row">
-          <div class="input-group mx-3">
-            <div class="input-group-prepend">
-              <span class="input-group-text">PORT</span>
-            </div>
-            <input id="hosting-port" type="number" name="port" value="8000" min="1025" class="form-control">
-            <div class="input-group-append">
-              <button class="btn btn-dark" onclick="send()">
-                Host Game
-              </button>
-            </div>
-          </div>
+      <div class="row">
+        <div class="col-sm">
+          <button class="btn btn-dark" onclick="hostGame()">
+            Host Game
+          </button>
+          <span id="access-code-display"></span>
         </div>
-      </form>
 
-      <!-- Fiding Row -->
-      <br class="bg-dark">
-      <form>
-        <div class="row">
-          <div class="input-group mx-3">
-            <div class="input-group-prepend">
-              <span class="input-group-text">HOST</span>
-            </div>
-            <input id="finding-host" type="text" name="host" value="localhost" class="form-control">
-            <div class="input-group-prepend">
-              <span class="input-group-text">PORT</span>
-            </div>
-            <input id="finding-port" type="number" name="port" value="8000" min="1025" class="form-control">
-            <div class="input-group-append">
-              <button class="btn btn-dark" onclick="send()">Find Game</button>
-            </div>
+        <div class="col-sm input-group">
+          <div class="input-group-prepend">
+            <span class="input-group-text">CODE</span>
+          </div>
+          <input id="access-code" name="accessCode" class="form-control">
+          <div class="input-group-append">
+            <button class="btn btn-dark" onclick="findGame()">
+              Find Game
+            </button>
           </div>
         </div>
-      </form>
+      </div>
 
       <!-- Messaging Component -->
       <hr>

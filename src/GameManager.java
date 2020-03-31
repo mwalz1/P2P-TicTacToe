@@ -1,130 +1,131 @@
-import java.io.IOException;
 import java.io.OutputStream;
-import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.logging.Logger;
 
 import com.sun.net.httpserver.HttpExchange;
 
-class GameManager {
+class GameManager implements Disposer {
   private final static Logger log = Logger.getLogger(Main.class.getName());
-  State[][] game = null;
-  private Optional<Connection> connection = Optional.empty();
+  List<Game> games = new ArrayList<>();
+  public void startGame(HttpExchange exchange) {
+    Game game = new Game();
+    this.games.add(game);
 
-  public void startServer(HttpExchange exchange) {
-    this.resetConnection();
-
-    final Map<String, String> params = Utils.exchangeToParamMap(exchange);
-    final String stringPort = params.getOrDefault("port", "");
-    final int port = Utils.parsePort(stringPort, 8000);
-
-    GameManager.log.info("Hosting server on port " + port);
-    try {
-      this.connection = Optional.of(ClientConnection.createConnection(port));
-    } catch (IOException e) {
-      GameManager.log.severe(e.toString());
-      Utils.sendResponse(exchange, 500, "Unknown error");
-      return;
-    }
-
-    GameManager.log.info("Successfully connected to a client!");
-    Utils.sendSseStream(exchange);
-
-    // this.initGame();
-    final OutputStream body = exchange.getResponseBody();
-    this.createMessageThread(body);
+    Map<String, String> response = new HashMap<>();
+    response.put("accessCode", game.accessCode);
+    response.put("gameCode", game.gameCode);
+    Utils.sendSuccess(exchange, response);
   }
 
-  public void startClient(HttpExchange exchange) {
-    this.resetConnection();
-
+  public void searchForGame(HttpExchange exchange) {
     final Map<String, String> params = Utils.exchangeToParamMap(exchange);
-    final String host = params.getOrDefault("host", "localhost");
-    final String stringPort = params.getOrDefault("port", "");
-    final int port = Utils.parsePort(stringPort, 8000);
 
-    try {
-      this.connection = Optional.of(ServerConnection.createConnection(host, port));
-    } catch (UnknownHostException e) {
-      Utils.sendResponse(exchange, 400, "Unknown host: " + host + ":" + port);
-    } catch (IOException e) {
-      GameManager.log.severe(e.toString());
-      Utils.sendResponse(exchange, 500, "Unknown error");
-      return;
+    if (!params.containsKey("accessCode")) {
+      throw new HttpError400("NO_ACCESS_CODE");
     }
 
-    GameManager.log.info("Successfully connected to the server!");
+    String accessCode = params.get("accessCode");
+    for (Game game : this.games) {
+      if (game.accessCode.equals(accessCode)) {
+        Map<String, String> response = new HashMap<>();
+        response.put("gameCode", game.gameCode);
+        Utils.sendSuccess(exchange, response);
+        return;
+      }
+    }
+
+    throw new HttpError400("ACCESS_CODE_INVALID");
+  }
+
+  public void joinAsHost(HttpExchange exchange) {
+    String gameCode = this.getGameCodeOrThrow(exchange);
+    Game game = this.getGameOrThrow(gameCode);
+    GameManager.log.info(String.format("Player joined as host (%s)!", gameCode));
     Utils.sendSseStream(exchange);
-    
     final OutputStream body = exchange.getResponseBody();
-    this.createMessageThread(body);
+    game.setHost(body);
+  }
+
+  public void joinAsOpponent(HttpExchange exchange) {
+    String gameCode = this.getGameCodeOrThrow(exchange);
+    Game game = this.getGameOrThrow(gameCode);
+    GameManager.log.info(String.format("Player joined as opponent (%s)!", gameCode));
+    Utils.sendSseStream(exchange);
+    final OutputStream body = exchange.getResponseBody();
+    game.setOpponent(body);
   }
 
   public void move(HttpExchange exchange) {
+    String gameCode = this.getGameCodeOrThrow(exchange);
+    Game game = this.getGameOrThrow(gameCode);
+
+    final Map<String, String> params = Utils.exchangeToParamMap(exchange);
+    if (!params.containsKey("x")) {
+      throw new HttpError400("NO_X");
+    } else if (!params.containsKey("y")) {
+      throw new HttpError400("NO_Y");
+    } else if (!params.containsKey("player")) {
+      throw new HttpError400("NO_PLAYER");
+    } else if (!params.containsKey("state")) {
+      throw new HttpError400("NO_STATE");
+    }
+
+    int x = this.parseOrThrow(params.get("x"), "INVALID_X");
+    int y = this.parseOrThrow(params.get("y"), "INVALID_Y");
+    
+    Player player;
+    try {
+      player = Player.valueOf(params.get("player"));
+    } catch (IllegalArgumentException e) {
+      throw new HttpError400("INVALID_PLAYER");
+    }
+
+    PlayableState state;
+    try {
+      state = PlayableState.valueOf(params.get("state"));
+    } catch (IllegalArgumentException e) {
+      throw new HttpError400("INVALID_STATE");
+    }
+
+    game.play(player, x, y, state);
+
     Utils.sendSuccess(exchange);
   }
 
-  public void send(HttpExchange exchange) {
-    this.connection.ifPresentOrElse((connection) -> {
-      String body = Utils.inputStreamToString(exchange.getRequestBody());
-      connection.send(body);
-      Utils.sendSuccess(exchange);
-    }, () -> {
-      Utils.sendResponse(exchange, 400, "No connection present.");
-    });
+  private int parseOrThrow(String s, String errorCode) {
+    try {
+      return Integer.parseInt(s);
+    } catch (NumberFormatException e) {
+      throw new HttpError400(errorCode);
+    }
+  }
+
+  private String getGameCodeOrThrow(HttpExchange exchange) {
+    final Map<String, String> params = Utils.exchangeToParamMap(exchange);
+
+    if (!params.containsKey("gameCode")) {
+      throw new HttpError400("NO_GAME_CODE");
+    }
+
+    return params.get("gameCode");
+  }
+
+  private Game getGameOrThrow(String gameCode) {
+    for (Game game : this.games) {
+      if (game.gameCode.equals(gameCode)) {
+        return game;
+      }
+    }
+
+    throw new HttpError400("NO_GAME_FOUND");
   }
 
   public void dispose() {
-    this.resetConnection();
-  }
-
-  private void createMessageThread(OutputStream body) {
-    Thread t = new Thread(() -> {
-      this.connection.ifPresent((server) -> {
-        Either<String, ReceiveError> result = server.receive();
-        
-        result.ifLeft((message) -> {
-          GameManager.log.info("Received: " + message);
-          message = "data: " + message + "\n\n";
-          try {
-            body.write(message.getBytes());
-            body.flush();
-            this.createMessageThread(body);
-          } catch (IOException e) {
-            GameManager.log.severe("Unknown IOException while writing to SSE stream: " + e.toString());
-          }
-        });
-
-        result.ifRight((error) -> {
-          if (error == ReceiveError.SocketTimeoutException) {
-            GameManager.log.info("Socket timeout! Not creating another message thread.");
-          } else {
-            GameManager.log.severe("Unknown IOException occurred while receiving message from peer.");
-          }
-        });
-      });
-    });
-
-    t.start();
-  }
-
-  private void resetConnection() {
-    this.connection.ifPresent((connection) -> {
-      connection.dispose();
-      this.connection = Optional.empty();
+    this.games.forEach((game) -> {
+      game.dispose();
     });
   }
-
-  private void initGame() {
-    State[] row1 = { State.EMPTY, State.EMPTY, State.EMPTY };
-    State[] row2 = { State.EMPTY, State.EMPTY, State.EMPTY };
-    State[] row3 = { State.EMPTY, State.EMPTY, State.EMPTY };
-
-    this.game = new State[][] { row1, row2, row3 };
-  }
-}
-
-enum State {
-  X, O, EMPTY
 }

@@ -1,4 +1,5 @@
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import com.sun.net.httpserver.HttpExchange;
 
@@ -6,7 +7,7 @@ class TemplateHandler extends FileHandler {
   final Path path;
 
   TemplateHandler(String path) {
-    this.path = Path.of(path);
+    this.path = Paths.get(path);
   }
 
   @Override
