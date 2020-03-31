@@ -1,4 +1,4 @@
-.flex {
+/* .flex {
   display: flex;
 }
 
@@ -43,4 +43,23 @@
 
 .me {
   justify-content: flex-end;
+} */
+
+#game-board {
+  width: 50%;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.free-box, .x-box, .o-box {
+  padding-top: 33.333%;
+}
+
+.free-box:hover {
+  background-color: #dbc54f !important;
+}
+
+.row-cols-3 > * {
+   flex: 0 0 33.333333%;
+   max-width: 33.333333%;
 }

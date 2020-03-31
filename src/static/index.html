@@ -3,61 +3,118 @@
 <html>
   <head>
     <title>Tic Tac Toe</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="/static/index.css">
+
+    <script src="/static/js/jquery-3.4.1.min.js"></script>
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/game.js"></script>
   </head>
-  
-  <body>
-    
-    <div class="flex flex-column align-center">
-      <div class="flex justify-center">
-      
-        <!-- Hosting column -->
-        <div class="flex flex-column">
-          <form>
-            <label for="port">PORT:</label>
-            <input type="number" min="1025" id="hosting-port" name="port" value="8000"><br><br>
-          </form>
-          <button onclick="hostGame()">
-            Host Game
-          </button>
+
+  <body class="bg-light">
+    <div class="container">
+
+      <!-- Connecting Component -->
+      <br>
+      <h3>Connection Setup</h1>
+
+      <!-- Hosting Row -->
+      <form>
+        <div class="row">
+          <div class="input-group mx-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text">PORT</span>
+            </div>
+            <input id="hosting-port" type="number" name="port" value="8000" min="1025" class="form-control">
+            <div class="input-group-append">
+              <button class="btn btn-dark" onclick="send()">
+                Host Game
+              </button>
+            </div>
+          </div>
         </div>
-  
-        <!-- Client column -->
-        <div class="flex flex-column">
-          <form>
-            <label for="host">HOST:</label>
-            <input type="text" id="finding-host" name="host" value="localhost"><br><br>
-            <label for="port">PORT:</label>
-            <input type="number" min="1025" id="finding-port" name="port" value="8000"><br><br>
-          </form>
-          <button onclick="findGame()">
-            Find Game
-          </button>
+      </form>
+
+      <!-- Fiding Row -->
+      <br class="bg-dark">
+      <form>
+        <div class="row">
+          <div class="input-group mx-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text">HOST</span>
+            </div>
+            <input id="finding-host" type="text" name="host" value="localhost" class="form-control">
+            <div class="input-group-prepend">
+              <span class="input-group-text">PORT</span>
+            </div>
+            <input id="finding-port" type="number" name="port" value="8000" min="1025" class="form-control">
+            <div class="input-group-append">
+              <button class="btn btn-dark" onclick="send()">Find Game</button>
+            </div>
+          </div>
         </div>
-  
+      </form>
+
+      <!-- Messaging Component -->
+      <hr>
+      <h3>Messaging</h1>
+      <!-- Message Output -->
+      <div class="card-deck">
+        <div class="card bg-white">
+          <div class="card-body">
+            <div class="col">
+              <div class="me">
+                <b>ME:</b>
+                <div class="card-text">Some message.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card bg-white">
+          <div class="card-body">
+            <div class="col">
+              <div class="them">
+                <b>THEM:</b>
+                <div class="card-text">A response.</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div style="margin: 3px;"></div>
-  
-      <div>
-        <div class="output" id="output">
-          <div class="me">
-            <div>Some message.</div>
-          </div>
-          <div class="them">
-            <div>A response.</div>
+      <!-- Message Input -->
+      <br>
+      <form>
+        <div class="row">
+          <div class="input-group mx-3">
+            <input id="host-send-input" type="text" class="form-control" placeholder="Message" autocomplete="off">
+            <div class="input-group-append">
+              <button class="btn btn-dark" onclick="send()">Send</button>
+            </div>
           </div>
         </div>
-        <div class="w-full flex">
-          <input id="host-send-input" class="flex-grow">
-          <button onclick="send()">
-            Send
-          </button>
+      </form>
+
+      <!-- TODO: Migrate to seperate file/screen -->
+      <!-- Tic Tac Toe Board -->
+      <hr>
+      <h3>TODO: Move Me</h1>
+      <div class="container mx-100">
+        <div id="game-board" class="row row-cols-3">
+          <div id="box-1-1" class="col bg-dark free-box border border-light" onclick="makePlay(this)"></div>
+          <div id="box-2-1" class="col bg-dark free-box border border-light" onclick="makePlay(this)"></div>
+          <div id="box-3-1" class="col bg-dark free-box border border-light" onclick="makePlay(this)"></div>
+          <div id="box-1-2" class="col bg-dark free-box border border-light" onclick="makePlay(this)"></div>
+          <div id="box-2-2" class="col bg-dark free-box border border-light" onclick="makePlay(this)"></div>
+          <div id="box-3-2" class="col bg-dark free-box border border-light" onclick="makePlay(this)"></div>
+          <div id="box-1-3" class="col bg-dark free-box border border-light" onclick="makePlay(this)"></div>
+          <div id="box-2-3" class="col bg-dark free-box border border-light" onclick="makePlay(this)"></div>
+          <div id="box-3-3" class="col bg-dark free-box border border-light" onclick="makePlay(this)"></div>
         </div>
       </div>
+
     </div>
-
   </body>
   <script src="/static/index.js"></script>
 </html>
-
