@@ -94,7 +94,7 @@ class Utils {
 
     StringBuilder body = new StringBuilder();
     body.append("{ ");
-    body.append("\"result\": \"success\"");
+    body.append("\"result\": \"success\", ");
     body.append(String.format("\"data\": %s", data));
     body.append(" }");
 

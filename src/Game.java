@@ -26,8 +26,8 @@ class Game implements Disposer {
   public final String accessCode;
   public final String gameCode;
   private final State[][] game;
-  private Optional<OutputStream> host;
-  private Optional<OutputStream> opponent;
+  private Optional<OutputStream> host = Optional.empty();
+  private Optional<OutputStream> opponent = Optional.empty();
   private Player next = Player.HOST;
 
   Game() {

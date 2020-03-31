@@ -91,7 +91,6 @@ class GameManager implements Disposer {
     }
 
     game.play(player, x, y, state);
-
     Utils.sendSuccess(exchange);
   }
 
