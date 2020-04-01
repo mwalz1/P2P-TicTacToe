@@ -101,10 +101,11 @@ class Utils {
     Utils.sendResponse(exchange, 200, body.toString());
   }
 
-  public static void sendSuccess(HttpExchange exchange) {
-    Utils.sendSuccess(exchange, Optional.empty());
-  }
+  // public static void sendSuccess(HttpExchange exchange) {
+  //   Utils.sendSuccess(exchange, Optional.empty());
+  // }
 
+  // TODO maybe just combine the two sendSuccess methods??
   public static void sendSuccess(HttpExchange exchange, Map<String, String> response) {
     Utils.sendSuccess(exchange, Optional.of(response));
   }

@@ -8,44 +8,36 @@ let accessCodeDisplay;
  * @type {HTMLInputElement}
  */
 let accessCode;
-/**
- * @type {HTMLInputElement}
- */
-let findingPort;
-/**
- * @type {HTMLInputElement}
- */
-let hostSendInput
-/**
- * @type {HTMLInputElement}
- */
-let output;
 
 /**
- * @type {{ player: 'host' | 'opponent', gameCode: string }}
+ * @type {{ player: 'HOST' | 'OPPONENT', gameCode: string }}
  */
 let gameState
 
 window.onload = () => {
   accessCodeDisplay = document.getElementById("access-code-display");
   accessCode = document.getElementById("access-code");
-  findingPort = document.getElementById("finding-port");
-  hostSendInput = document.getElementById("host-send-input");
-  output = document.getElementById("output");
 }
 
+/**
+ * Create a SSE listener to listen for events from the game server. Each event represents a move 
+ * made by the opposing player.
+ * 
+ * @param {String} url 
+ */
 const createSource = (url) => {
-  // TODO error handling
+  // TODO error handling what if the url is bad?
   const source = new EventSource(url);
 
   source.onmessage = (event) => {
-    // TODO error handling
+    // TODO error handling what if JSON.parse fails?
     /**
      * @type {{ location: [number, number], move: "O" | "X" }}
      */
     const data = JSON.parse(event.data);
 
     // TODO handle this on the board
+    // The data represents a move that an opponent made!
     console.log(data);
   }
 }
@@ -67,13 +59,19 @@ const createSource = (url) => {
  *   data: any;
  * }
  * ```
- * 
+ * @template T
  * @param {String} url 
- * @returns {{ result: "error", error: string } | { result: "success", data: any }}
+ * @param {(data: T) => void} onSuccess 
+ * @returns {{ result: "error", error: string } | { result: "success", data: T }}
  */
-const get = async (url) => {
+const get = async (url, onSuccess) => {
   const response = await fetch(url);
 
+  // TODO implement very simple error handling
+  // Maybe we could have a little error box that shows up when an error occurs?
+  /**
+   * @type {{ result: "error", error: string } | { result: "success", data: T }}
+   */
   let json
   try {
     json = await response.json();
@@ -91,37 +89,43 @@ const get = async (url) => {
   }
 
   console.log(`Data from ${url}: `, json.data);
-  return json;
+  await onSuccess(json.data);
 }
 
+/**
+ * Start a game, set the text content to display the access code so the opponent can join and then
+ * create an SSE stream.
+ */
 const hostGame = async () => {
-  const response = await get('/api/start-server');
-  if (response.result === "error") {
-    return;
-  }
+  await get('/api/start-server', (data) => {
+    // data is { gameCode: string, accessCode: string }
 
-  gameState = {
-    player: "host",
-    gameCode: response.data.gameCode,
-  };
-
-  accessCodeDisplay.textContent = response.data.accessCode;
-  createSource(`/api/join-as-host?gameCode=${gameState.gameCode}`);
+    gameState = {
+      player: "HOST",
+      gameCode: data.gameCode,
+    };
+  
+    accessCodeDisplay.textContent = data.accessCode;
+    createSource(`/api/join-as-host?gameCode=${gameState.gameCode}`);
+  });
 }
 
+/**
+ * Find a game using an access code. If the access code is valid, immediately use the game code
+ * to create a SSE stream.
+ */
 const findGame = async () => {
   console.log(`Searching for game with accessCode: ${accessCode.value}`);
-  const response = await get(`/api/search-for-game?accessCode=${accessCode.value}`);
-  if (response.result === "error") {
-    return;
-  }
+  await get(`/api/search-for-game?accessCode=${accessCode.value}`, (data) => {
+    // data is { gameCode: string }
 
-  gameState = {
-    player: "opponent",
-    gameCode: response.data.gameCode,
-  }
-
-  createSource(`/api/join-as-opponent?gameCode?=${gameState.gameCode}`);
+    gameState = {
+      player: "OPPONENT",
+      gameCode: data.gameCode,
+    }
+  
+    createSource(`/api/join-as-opponent?gameCode?=${gameState.gameCode}`);
+  });
 }
 
 /**
@@ -131,9 +135,14 @@ const findGame = async () => {
  * @param {"X" | "O"} state 
  */
 const playRequest = async (x, y, state) => {
-  // TODO Use this method to send a move to an opponent
   console.log(`Making play at ${x},${y} -> ${state}`);
-  const response = await get(`/api/move?x=${x}&y=${y}&state=${state}`);
+  await get(
+    `/api/move?x=${x}&y=${y}&state=${state}&player=${gameState.player}&gameCode=${gameState.gameCode}`,
+    (data) => {
+      // data is { finished: 'yes' | 'no' }
+      // TODO Use the data to set the game to finished or not maybe?
+    }
+  );
 }
 
 hostTurn = true;

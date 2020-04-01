@@ -90,8 +90,22 @@ class GameManager implements Disposer {
       throw new HttpError400("INVALID_STATE");
     }
 
-    game.play(player, x, y, state);
-    Utils.sendSuccess(exchange);
+    PlayResult result = game.play(player, x, y, state);
+
+    // GAME_FINISHED and GAME_NOT_FINISHED are not error states
+    // the rest are and should return 400 errors
+    if (result != PlayResult.GAME_FINISHED && result != PlayResult.GAME_NOT_FINISHED) {
+      throw new HttpError400(result.toString());
+    }
+
+    Map<String, String> response = new HashMap<>();
+    if (result == PlayResult.GAME_FINISHED) {
+      response.put("finished", "yes");
+    } else {
+      response.put("finished", "no");
+    }
+
+    Utils.sendSuccess(exchange, response);
   }
 
   private int parseOrThrow(String s, String errorCode) {
