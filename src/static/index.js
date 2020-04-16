@@ -124,7 +124,7 @@ const findGame = async () => {
       gameCode: data.gameCode,
     }
   
-    createSource(`/api/join-as-opponent?gameCode?=${gameState.gameCode}`);
+    createSource(`/api/join-as-opponent?gameCode=${gameState.gameCode}`);
   });
 }
 

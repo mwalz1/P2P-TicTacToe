@@ -20,8 +20,6 @@ cd src
 java Main
 ```
 
-
-
 ## Development
 Ideally, you are on a Linux based system. In this situation, you can easily use the following command to start a hot reload server.
 ```

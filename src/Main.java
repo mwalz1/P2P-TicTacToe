@@ -12,12 +12,12 @@ class Main {
       try {
         port = Integer.parseInt(args[0]);
       } catch (NumberFormatException e) {
-        Main.log.severe("Unable to parse port number.");
+        Main.log.severe("Unable to parse port number from: " + args[0]);
         System.exit(1);
       }
     }
 
-    Main.log.info("Running on port -> " + port);
+    Main.log.info("Running at -> http://localhost:" + port);
     HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
     server.createContext("/", new TemplateHandler("static/index.html"));
     server.createContext("/static/", new StaticHandler("/static/"));
