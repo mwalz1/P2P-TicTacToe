@@ -4,7 +4,10 @@ import java.util.Map;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
 
-class HttpError extends RuntimeException {
+/**
+ * A runtime exception class to easily return HTTP errors by throwing an exception.
+ */
+abstract class HttpError extends RuntimeException {
   private static final long serialVersionUID = 3903228837194891673L;
 
   private final int status;
@@ -30,10 +33,26 @@ class HttpError extends RuntimeException {
   }
 }
 
+/**
+ * 400 Bad Request.
+ */
 class HttpError400 extends HttpError {
   private static final long serialVersionUID = 3903228837194891673L;
 
   HttpError400(String errorCode) {
     super(400, errorCode);
+  }
+}
+
+/**
+ * 405 Method Not Allowed
+ * 
+ * This should be returned when an invalid method request is sent to an endpoint.
+ */
+class HttpError405 extends HttpError {
+  private static final long serialVersionUID = 3903228837194891673L;
+
+  HttpError405() {
+    super(405, "Method Not Allowed");
   }
 }

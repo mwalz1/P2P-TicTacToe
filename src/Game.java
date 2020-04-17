@@ -20,9 +20,9 @@ enum PlayResult {
   NOT_YOUR_TURN,
   OUT_OF_BOUNDS,
   GAME_ALREADY_FINISHED,
+  PLACEMENT_CONFLICT,
   GAME_FINISHED,
   GAME_NOT_FINISHED,
-  PLACEMENT_CONFLICT,
 }
 
 class Game implements Disposer {
@@ -42,12 +42,11 @@ class Game implements Disposer {
 
     this.game = new State[][] { row1, row2, row3 };
 
-    // TODO could we just have one short identifier?
     this.accessCode = Utils.getAlphaNumericString(4);
     this.gameCode = Utils.getAlphaNumericString(20);
   }
 
-  PlayResult play(Player player, int x, int y, PlayableState state) {
+  PlayResult play(Player player, int x, int y) {
     if (this.finished) {
       return PlayResult.GAME_ALREADY_FINISHED;
     }
@@ -65,6 +64,7 @@ class Game implements Disposer {
       stream = Utils.getOrThrow(this.host, "NO_HOST");
     }
 
+    // The game index starts at 0
     if (x > 2 || x < 0 || y > 2 || y < 0) {
       return PlayResult.OUT_OF_BOUNDS;
     }
@@ -73,18 +73,17 @@ class Game implements Disposer {
       return PlayResult.PLACEMENT_CONFLICT;
     }
 
-    if (state == PlayableState.O) {
-      this.game[x][y] = State.O;
-    } else {
+    if (player == Player.HOST) {
       this.game[x][y] = State.X;
+    } else {
+      this.game[x][y] = State.O;
     }
 
-    Game.log.info(player.toString() + " played " + state.toString() + " at " + x + ", " + y);
+    Game.log.info(player.toString() + " played " + this.game[x][y].toString() + " at " + x + ", " + y);
     String message = String.format(
-      "data: { \"location\": [%d, %d], \"move\": \"%s\" }\n\n", 
-      x, 
-      y, 
-      state.toString()
+      "data: { \"location\": [%d, %d] }\n\n", 
+      x,
+      y
     );
 
     try {
@@ -103,12 +102,22 @@ class Game implements Disposer {
     }
   }
 
-  public void setHost(OutputStream host) {
+  public boolean setHost(OutputStream host) {
+    if (!this.host.isPresent()) {
+      return false;
+    }
+
     this.host = Optional.of(host);
+    return true;
   }
 
-  public void setOpponent(OutputStream opponent) {
+  public boolean setOpponent(OutputStream opponent) {
+    if (!this.opponent.isPresent()) {
+      return false;
+    }
+
     this.opponent = Optional.of(opponent);
+    return true;
   }
 
   public void dispose() {

@@ -17,8 +17,12 @@ $ make
 Just run the `Main.java` file!
 ```
 cd src
-java Main
+java Main # optionally pass in the port e.g. java Main 5000
 ```
+
+This will start a server at [`localhost:3000`](http://localhost:3000) if you used the default port. To play against yourself, you will need to open two instances of the application. In the first instance, click `"Host Game"` copy the access code that appeared. In the second window, paste the access code in the `Access Code` field and then click `"Find Game"`. After, you will be able to take turns placing your markers. 
+
+> Remember, the host always goes first!
 
 ## Development
 Ideally, you are on a Linux based system. In this situation, you can easily use the following command to start a hot reload server.
@@ -38,4 +42,21 @@ $ sudo apt-get install -y entr
 ### Mac OS
 ```
 $ brew install entr
+```
+
+## Swagger
+This project defines a `swagger.yml` file which can be converted into a website for visualization.
+
+#### Viewing
+To view this information, open up `index.html` in the browser of your choice. Alternatively, go to the [Swagger Editor](https://editor.swagger.io/), copy the contents of `swagger.yml` and paste the contents in the online editor.
+
+#### Generation
+First, ensure `redoc-cli` is installed.
+```
+$ npm install -g redoc-cli
+```
+
+Next, run:
+```
+$ redoc-cli bundle -o index.html swagger.yml
 ```

@@ -69,8 +69,6 @@ class GameManager implements Disposer {
       throw new HttpError400("NO_Y");
     } else if (!params.containsKey("player")) {
       throw new HttpError400("NO_PLAYER");
-    } else if (!params.containsKey("state")) {
-      throw new HttpError400("NO_STATE");
     }
 
     int x = this.parseOrThrow(params.get("x"), "INVALID_X");
@@ -83,14 +81,7 @@ class GameManager implements Disposer {
       throw new HttpError400("INVALID_PLAYER");
     }
 
-    PlayableState state;
-    try {
-      state = PlayableState.valueOf(params.get("state"));
-    } catch (IllegalArgumentException e) {
-      throw new HttpError400("INVALID_STATE");
-    }
-
-    PlayResult result = game.play(player, x, y, state);
+    PlayResult result = game.play(player, x, y);
 
     // GAME_FINISHED and GAME_NOT_FINISHED are not error states
     // the rest are and should return 400 errors

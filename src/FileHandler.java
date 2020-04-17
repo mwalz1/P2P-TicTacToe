@@ -7,9 +7,23 @@ import java.nio.file.Path;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
 
+/**
+ * A handler that will serve files in an HTTP response.
+ */
 abstract class FileHandler implements HttpHandler {
+  /**
+   * Get the path of the file to return.
+   * 
+   * @param exchange The HttpExchange object.
+   * @return The path object of the file to stream back.
+   */
   protected abstract Path getPath(HttpExchange exchange);
 
+  /**
+   * The HTTP handler. Returns a 200 if the file exists and a 404 if the file is not found.
+   * 
+   * @param exchange The HttpExchange object.
+   */
   public void handle(HttpExchange exchange) throws IOException {
     final Path filePath = this.getPath(exchange);
     final OutputStream body = exchange.getResponseBody();

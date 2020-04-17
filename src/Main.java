@@ -23,11 +23,11 @@ class Main {
     server.createContext("/static/", new StaticHandler("/static/"));
 
     GameManager manager = new GameManager();
-    server.createContext("/api/start-server", HttpError.withErrorHandler(manager::startGame));
-    server.createContext("/api/search-for-game", HttpError.withErrorHandler(manager::searchForGame));
-    server.createContext("/api/join-as-host", HttpError.withErrorHandler(manager::joinAsHost));
-    server.createContext("/api/join-as-opponent", HttpError.withErrorHandler(manager::joinAsOpponent));
-    server.createContext("/api/move", HttpError.withErrorHandler(manager::move));
+    server.createContext("/api/start-server", HttpError.withErrorHandler(Utils.handleGet(manager::startGame)));
+    server.createContext("/api/search-for-game", HttpError.withErrorHandler(Utils.handleGet(manager::searchForGame)));
+    server.createContext("/api/join-as-host", HttpError.withErrorHandler(Utils.handleGet(manager::joinAsHost)));
+    server.createContext("/api/join-as-opponent", HttpError.withErrorHandler(Utils.handleGet(manager::joinAsOpponent)));
+    server.createContext("/api/move", HttpError.withErrorHandler(Utils.handleGet(manager::move)));
 
     // Add shutdown hook to stop the server
     Runtime.getRuntime().addShutdownHook(new Thread(() -> {

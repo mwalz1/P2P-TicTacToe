@@ -11,8 +11,11 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.Headers;
+import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.HttpHandler;
 
 class Utils {
   private final static String LETTERS_NUMBERS = 
@@ -101,10 +104,6 @@ class Utils {
     Utils.sendResponse(exchange, 200, body.toString());
   }
 
-  // public static void sendSuccess(HttpExchange exchange) {
-  //   Utils.sendSuccess(exchange, Optional.empty());
-  // }
-
   // TODO maybe just combine the two sendSuccess methods??
   public static void sendSuccess(HttpExchange exchange, Map<String, String> response) {
     Utils.sendSuccess(exchange, Optional.of(response));
@@ -117,10 +116,6 @@ class Utils {
       // ignore
     }
   }
-
-  // public static <E extends Enum<E>> List<String> enumValuesAsStrings(Class<E> e) {
-  //   return Stream.of(e.getEnumConstants()).map(Enum::name).collect(Collectors.toList());
-  // }
 
   public static <T> T getOrThrow(Optional<T> optional, String errorCode) {
     try {
@@ -154,5 +149,15 @@ class Utils {
       Utils.log.severe("Unable to send response to " + exchange.getRemoteAddress());
       Utils.log.severe(e.toString());
     }
+  }
+
+  public static HttpHandler handleGet(HttpHandler handler) {
+    return (HttpExchange exchange) -> {
+      if (!exchange.getRequestMethod().equals("GET")) {
+        throw new HttpError405();
+      }
+
+      handler.handle(exchange);
+    };
   }
 }
