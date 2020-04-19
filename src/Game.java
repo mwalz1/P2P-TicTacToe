@@ -103,7 +103,7 @@ class Game implements Disposer {
   }
 
   public boolean setHost(OutputStream host) {
-    if (!this.host.isPresent()) {
+    if (this.host.isPresent()) {
       return false;
     }
 
@@ -112,7 +112,7 @@ class Game implements Disposer {
   }
 
   public boolean setOpponent(OutputStream opponent) {
-    if (!this.opponent.isPresent()) {
+    if (this.opponent.isPresent()) {
       return false;
     }
 

@@ -1,50 +1,3 @@
-/* .flex {
-  display: flex;
-}
-
-.flex-column {
-  flex-direction: column;
-}
-
-.justify-center {
-  justify-content: center;
-}
-
-.align-center {
-  align-items: center;
-}
-
-.flex-grow {
-  flex-grow: 1;
-}
-
-.w-full {
-  width: 100%;
-}
-
-.output {
-  width: 400px;
-  background: #dadada;
-  padding: 4px;
-  border-radius: 4px;
-}
-
-.me, .them {
-  display: flex;
-}
-
-.me div::before {
-  content: "ME: ";
-}
-
-.them div::before {
-  content: "THEM: ";
-}
-
-.me {
-  justify-content: flex-end;
-} */
-
 #game-board {
   width: 50%;
   margin-right: auto;
@@ -62,4 +15,8 @@
 .row-cols-3 > * {
    flex: 0 0 33.333333%;
    max-width: 33.333333%;
+}
+
+.invisible-if-empty:empty {
+  display: none;
 }

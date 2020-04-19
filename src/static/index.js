@@ -4,10 +4,16 @@
  * @type {HTMLInputElement}
  */
 let accessCodeDisplay;
+
 /**
  * @type {HTMLInputElement}
  */
 let accessCode;
+
+/**
+ * @type {HTMLInputElement}
+ */
+let errorAlert
 
 /**
  * @type {{ player: 'HOST' | 'OPPONENT', gameCode: string }}
@@ -17,6 +23,7 @@ let gameState
 window.onload = () => {
   accessCodeDisplay = document.getElementById("access-code-display");
   accessCode = document.getElementById("access-code");
+  errorAlert = document.getElementById("error-alert");
 }
 
 /**
@@ -30,15 +37,18 @@ const createSource = (url) => {
   const source = new EventSource(url);
 
   source.onmessage = (event) => {
-    // TODO error handling what if JSON.parse fails?
     /**
-     * @type {{ location: [number, number], move: "O" | "X" }}
+     * @type {{ location: [number, number] }}
      */
     const data = JSON.parse(event.data);
-
-    // TODO handle this on the board
-    // The data represents a move that an opponent made!
     console.log(data);
+
+    const [x, y] = data.location;
+    if (gameState.player === "HOST") {
+      placeMarker(x, y, "O");
+    } else {
+      placeMarker(x, y, "X");
+    }
   }
 }
 
@@ -67,8 +77,6 @@ const createSource = (url) => {
 const get = async (url, onSuccess) => {
   const response = await fetch(url);
 
-  // TODO implement very simple error handling
-  // Maybe we could have a little error box that shows up when an error occurs?
   /**
    * @type {{ result: "error", error: string } | { result: "success", data: T }}
    */
@@ -85,6 +93,7 @@ const get = async (url, onSuccess) => {
 
   if (json.result === "error") {
     console.error(`Bad request to ${url}: ${json.error}`)
+    errorAlert.innerText = `Bad request to ${url}: ${json.error}`;
     return json;
   }
 
@@ -134,43 +143,46 @@ const findGame = async () => {
  * @param {0 | 1 | 2} y 
  * @param {"X" | "O"} state 
  */
-const playRequest = async (x, y, state) => {
-  console.log(`Making play at ${x},${y} -> ${state}`);
+const placeMarker = async (x, y, state) => {
+  console.log(`Placing ${state} at ${x},${y}.`);
+  if (state === "X") {
+    $(`#box-${x}-${y}`).removeClass("bg-dark").addClass("bg-success");
+  } else {
+    $(`#box-${x}-${y}`).removeClass("bg-dark").addClass("bg-danger");
+  }
+}
+
+let hostTurn = true;
+let gameOver = false;
+let boxCount = 0;
+
+let hostScore = 0;
+let clientScore = 0;
+
+/**
+ * 
+ * @param {HTMLElement} box 
+ * @param {0 | 1 | 2} x The row index.
+ * @param {0 | 1 | 2} y The column index.
+ */
+const makePlay = async (box, x, y) => {
+  if (!gameState) {
+    errorAlert.innerText = "The game has not yet started!";
+    return;
+  }
+
   await get(
-    `/api/move?x=${x}&y=${y}&state=${state}&player=${gameState.player}&gameCode=${gameState.gameCode}`,
+    `/api/move?x=${x}&y=${y}&player=${gameState.player}&gameCode=${gameState.gameCode}`,
     (data) => {
+      if (gameState.player === "HOST") {
+        placeMarker(x, y, "X");
+      } else {
+        placeMarker(x, y, "O");
+      }
       // data is { finished: 'yes' | 'no' }
       // TODO Use the data to set the game to finished or not maybe?
     }
   );
-}
-
-hostTurn = true;
-gameOver = false;
-boxCount = 0;
-
-hostScore = 0;
-clientScore = 0;
-
-function makePlay(box) {
-  if (!gameOver && $("#" + box.id).hasClass("free-box")) {
-    if (hostTurn) {
-      $("#" + box.id).removeClass("free-box").addClass("x-box");
-      $("#" + box.id).removeClass("bg-dark").addClass("bg-success");
-    }
-    else if (!hostTurn) {
-      $("#" + box.id).removeClass("free-box").addClass("o-box");
-      $("#" + box.id).removeClass("bg-dark").addClass("bg-danger");
-    }
-
-    hostTurn = !hostTurn;
-    boxCount++;
-
-    checkWinner();
-  }
-  else if ($("#" + box.id).hasClass("restart-box")) {
-    resetGame();
-  }
 }
 
 function resetGame() {
