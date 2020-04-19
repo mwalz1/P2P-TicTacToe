@@ -38,11 +38,6 @@ let gameStatusDisplay;
 /**
  * @type {HTMLButtonElement}
  */
-let scoreDisplay
-
-/**
- * @type {HTMLButtonElement}
- */
 let resetGameButton
 
 /**
@@ -54,8 +49,6 @@ let gameOver = false;
 let hostTurn = true;
 
 let boxCount = 0;
-let hostScore = 0;
-let clientScore = 0;
 
 
 window.onload = () => {
@@ -65,7 +58,6 @@ window.onload = () => {
   findGameButton = document.getElementById("find-game");
   hostGameButton = document.getElementById("host-game");
   gameStatusDisplay = document.getElementById("game-stat-disp");
-  scoreDisplay = document.getElementById("score-disp");
   resetGameButton = document.getElementById("reset-game");
   successAlert = document.getElementById("success-alert");
 }
@@ -108,32 +100,6 @@ const clearTurnDisp = () => {
   $("#game-stat-disp").removeClass("visible").addClass("invisible");
 }
 
-const updateScoreDisp = (winner) => {
-  if (gameState.player === "HOST") {
-    if (winner === "HOST") {
-      hostScore++;
-    } else if (winner === "OPPONENT") {
-      clientScore++;
-    }
-  } else {
-    if (winner === "HOST") {
-      clientScore++;
-    } else if (winner === "OPPONENT") {
-      hostScore++;
-    }
-  }
-
-  if (gameState.player === "HOST") {
-    scoreDisplay.textContent = "You:" + hostScore + "; Opponent:" + clientScore;
-  } else {
-    scoreDisplay.textContent = "You:" + clientScore + "; Opponent:" + hostScore;
-  }
-}
-
-const resetScore = () => {
-  scoreDisplay.textContent = "You:0; Opponent:0";
-}
-
 /**
  * Create a SSE listener to listen for events from the game server. Each event represents a move
  * made by the opposing player.
@@ -166,7 +132,6 @@ const createSource = (url) => {
     if (data.gameOver === true) {
       successAlert.textContent = "The game is finished!";
       setWinnerDisp(data.winner);
-      updateScoreDisp(data.winner);
     }
   }
 
@@ -255,7 +220,6 @@ const makePlay = async (x, y) => {
       if (data.gameOver === true) {
         successAlert.textContent = "The game is finished!";
         setWinnerDisp(data.winner);
-        updateScoreDisp(data.winner);
       }
     }
   );
