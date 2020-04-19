@@ -85,10 +85,7 @@ const enableButtons = () => {
 const setTurnDisp = () => {
   $("#game-stat-disp").removeClass("invisible").addClass("visible");
 
-  if (
-    (gameState.player === "HOST" && hostTurn)
-    || (gameState.player === "OPPONENT" && !hostTurn)
-  ) {
+  if ((gameState.player === "HOST" && hostTurn) || (gameState.player === "OPPONENT" && !hostTurn)) {
     gameStatusDisplay.textContent = "Your Move";
   } else {
     gameStatusDisplay.textContent = "Opponent's Move";
@@ -109,6 +106,19 @@ const setWinnerDisp = (winner) => {
 
 const clearTurnDisp = () => {
   $("#game-stat-disp").removeClass("visible").addClass("invisible");
+}
+
+const updateScoreDisp = (winner) => {
+  if (gameState.player ==== "HOST") {
+    scoreDisplay.textContent = "You:" + hostScore "; Opponent:" + clientScore;
+  }
+  else {
+    scoreDisplay.textContent = "You:" + clientScore "; Opponent:" + hostScore;
+  }
+}
+
+const resetScore = () => {
+  scoreDisplay.textContent = "You:0; Opponent:0";
 }
 
 /**
@@ -140,12 +150,16 @@ const createSource = (url) => {
       placeMarker(x, y, "X");
     }
 
-    if (data.finished === "yes") {
-      successAlert.textContent = "The game is finished!";
-    }
-
     if (data.gameOver === true) {
+      if (winner === "HOST") {
+        hostScore++;
+      } else if (winner === "OPPONENT") {
+        clientScore++;
+      }
+
+      successAlert.textContent = "The game is finished!";
       setWinnerDisp(data.winner);
+      updateScoreDisp(data.winner);
     }
   }
 
@@ -231,8 +245,10 @@ const makePlay = async (x, y) => {
       }
 
       // data is { finished: 'yes' | 'no' }
-      if (data.finished === "yes") {
+      if (data.gameOver === true) {
         successAlert.textContent = "The game is finished!";
+        setWinnerDisp(data.winner);
+        updateScoreDisp(data.winner);
       }
     }
   );
@@ -245,6 +261,7 @@ function resetGame() {
   $(".o-box").removeClass("o-box").addClass("free-box");
   enableButtons();
   clearTurnDisp();
+  resetScore();
 
   // TODO: Remove
   $("#box-1-1").html("");
