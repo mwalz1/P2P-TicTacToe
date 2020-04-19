@@ -83,6 +83,8 @@ const enableButtons = () => {
 }
 
 const setTurnDisp = () => {
+  $("#game-stat-disp").removeClass("invisible").addClass("visible");
+
   if (
     (gameState.player === "HOST" && hostTurn)
     || (gameState.player === "OPPONENT" && !hostTurn)
@@ -91,6 +93,30 @@ const setTurnDisp = () => {
   } else {
     gameStatusDisplay.textContent = "Opponent's Move";
   }
+}
+
+const setHostWinnerDisp = () => {
+  $("#game-stat-disp").removeClass("invisible").addClass("visible");
+
+  if (gameState.player === "HOST") {
+    gameStatusDisplay.textContent = "You Won!";
+  } else {
+    gameStatusDisplay.textContent = "Better Luck Next Time";
+  }
+}
+
+const setClientWinnerDisp = () => {
+  $("#game-stat-disp").removeClass("invisible").addClass("visible");
+
+  if (gameState.player === "OPPONENT") {
+    gameStatusDisplay.textContent = "You Won!";
+  } else {
+    gameStatusDisplay.textContent = "Better Luck Next Time";
+  }
+}
+
+const clearTurnDisp = () => {
+  $("#game-stat-disp").removeClass("visible").addClass("invisible");
 }
 
 /**
@@ -124,6 +150,15 @@ const createSource = (url) => {
 
     if (data.finished === "yes") {
       successAlert.textContent = "The game is finished!";
+
+      if (!hostTurn) {
+        setHostWinnerDisp();
+        hostScore++;
+      }
+      else {
+        setClientWinnerDisp();
+        clientScore++;
+      }
     }
   }
 
@@ -183,6 +218,9 @@ const placeMarker = async (x, y, state) => {
   } else {
     $(`#box-${x}-${y}`).removeClass("free-box").addClass("o-box");
   }
+
+  hostTurn = !hostTurn;
+  setTurnDisp();
 }
 
 /**
@@ -208,15 +246,27 @@ const makePlay = async (x, y) => {
       // data is { finished: 'yes' | 'no' }
       if (data.finished === "yes") {
         successAlert.textContent = "The game is finished!";
+
+        if (!hostTurn) {
+          setHostWinnerDisp();
+          hostScore++;
+        }
+        else {
+          setClientWinnerDisp();
+          clientScore++;
+        }
       }
     }
   );
 }
 
 function resetGame() {
+  hostTurn = true;
+
   $(".x-box").removeClass("x-box").addClass("free-box");
   $(".o-box").removeClass("o-box").addClass("free-box");
   enableButtons();
+  clearTurnDisp();
 
   // TODO: Remove
   $("#box-1-1").html("");
