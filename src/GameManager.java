@@ -14,7 +14,7 @@ class GameManager implements Disposer {
     Game game = new Game();
     this.games.add(game);
 
-    Map<String, String> response = new HashMap<>();
+    Map<String, Object> response = new HashMap<>();
     response.put("accessCode", game.accessCode);
     response.put("gameCode", game.gameCode);
     Utils.sendSuccess(exchange, response);
@@ -30,7 +30,7 @@ class GameManager implements Disposer {
     String accessCode = params.get("accessCode");
     for (Game game : this.games) {
       if (game.accessCode.equals(accessCode)) {
-        Map<String, String> response = new HashMap<>();
+        Map<String, Object> response = new HashMap<>();
         response.put("gameCode", game.gameCode);
         Utils.sendSuccess(exchange, response);
         return;
@@ -97,14 +97,14 @@ class GameManager implements Disposer {
       throw new HttpError400(result.toString());
     }
 
-    Map<String, String> response = new HashMap<>();
+    Map<String, Object> response = new HashMap<>();
     if (result == PlayResult.GAME_FINISHED) {
       // ensure we remove the game once finished
       // TODO notify other player
       this.games.remove(game);
-      response.put("finished", "yes");
+      response.put("gameOver", true);
     } else {
-      response.put("finished", "no");
+      response.put("gameOver", false);
     }
 
     Utils.sendSuccess(exchange, response);

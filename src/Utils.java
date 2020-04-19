@@ -63,12 +63,13 @@ class Utils {
   }
 
   /**
-   * A simple function that will convert a string -> string map into a JSON object.
+   * A simple function that will convert a string -> object map into a JSON object. If the value is 
+   * a String, quotes will automatically be placed around the value.
    * 
    * @param map The map.
    * @return The JSON object string.
    */
-  public static String mapToJSONString(Map<String, String> map) {
+  public static String mapToJSONString(Map<String, Object> map) {
     StringBuilder b = new StringBuilder();
     b.append("{ ");
     boolean first = true;
@@ -77,7 +78,14 @@ class Utils {
         b.append(", ");
       }
 
-      b.append(String.format("\"%s\": \"%s\"", key, map.get(key)));
+      Object value = map.get(key);
+      if (value instanceof String) {
+        b.append(String.format("\"%s\": \"%s\"", key, value));
+      } else {
+        b.append(String.format("\"%s\": %s", key, value.toString()));
+      }
+
+
       first = false;
     }
 
@@ -136,7 +144,7 @@ class Utils {
    * @param exchange The exchange object.
    * @param response The data to convert into a JSON object and send as the HTTP response body.
    */
-  public static void sendSuccess(HttpExchange exchange, Map<String, String> response) {
+  public static void sendSuccess(HttpExchange exchange, Map<String, Object> response) {
     String data = Utils.mapToJSONString(response);
     StringBuilder body = new StringBuilder();
     body.append("{ ");

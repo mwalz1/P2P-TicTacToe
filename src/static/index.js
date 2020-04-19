@@ -108,7 +108,13 @@ const clearTurnDisp = () => {
   $("#game-stat-disp").removeClass("visible").addClass("invisible");
 }
 
-const updateScoreDisp = () => {
+const updateScoreDisp = (winner) => {
+  if (winner === "HOST") {
+    hostScore++;
+  } else if (winner === "OPPONENT") {
+    clientScore++;
+  }
+
   if (gameState.player === "HOST") {
     scoreDisplay.textContent = "You:" + hostScore + "; Opponent:" + clientScore;
   } else {
@@ -132,7 +138,7 @@ const createSource = (url) => {
   source.onerror = (event) => {
     console.log(event);
     errorAlert.innerText = "An error occurred during the SSE.";
-    source.close();
+    resetGame(); // this will close the event source
   }
 
   source.onmessage = (event) => {
@@ -150,12 +156,6 @@ const createSource = (url) => {
     }
 
     if (data.gameOver === true) {
-      if (data.winner === "HOST") {
-        hostScore++;
-      } else if (data.winner === "OPPONENT") {
-        clientScore++;
-      }
-
       successAlert.textContent = "The game is finished!";
       setWinnerDisp(data.winner);
       updateScoreDisp(data.winner);
@@ -264,8 +264,9 @@ function resetGame() {
 
   // TODO: Remove
   $("#box-1-1").html("");
+  // We don't reset the error alert since an error may have caused the reset
+  // and we error to still show after the game has reset
   successAlert.textContent = "";
-  errorAlert.textContent = "";
   accessCodeDisplay.textContent = "";
   gameState.eventSource.close();
   gameState = undefined;
