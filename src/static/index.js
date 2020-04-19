@@ -98,13 +98,11 @@ const setTurnDisp = () => {
 const setWinnerDisp = (winner) => {
   $("#game-stat-disp").removeClass("invisible").addClass("visible");
 
-  if((winner === "HOST" && gameState.player === "HOST") || (winner === "OPPONENT" && gameState.player === "OPPONENT")) {
+  if ((winner === "HOST" && gameState.player === "HOST") || (winner === "OPPONENT" && gameState.player === "OPPONENT")) {
     gameStatusDisplay.textContent = "You Won!";
   } else if ((winner === "HOST" && gameState.player === "OPPONENT") || (winner === "OPPONENT" && gameState.player === "HOST")) {
     gameStatusDisplay.textContent = "Better Luck Next Time";
-  } else if (winner === "TIE") {
-    gameStatusDisplay.textContent = "It's a tie!";
-  } else if () {
+  } else if (winner === "NONE") {
     gameStatusDisplay.textContent = "No Winner for this Game.";
   }
 }
