@@ -16,11 +16,6 @@ let accessCode;
 let errorAlert
 
 /**
- * @type {HTMLInputElement}
- */
-let successAlert
-
-/**
  * @type {HTMLButtonElement}
  */
 let findGameButton
@@ -59,7 +54,6 @@ window.onload = () => {
   hostGameButton = document.getElementById("host-game");
   gameStatusDisplay = document.getElementById("game-stat-disp");
   resetGameButton = document.getElementById("reset-game");
-  successAlert = document.getElementById("success-alert");
 }
 
 const disableButtons = () => {
@@ -130,7 +124,6 @@ const createSource = (url) => {
     }
 
     if (data.gameOver === true) {
-      successAlert.textContent = "The game is finished!";
       setWinnerDisp(data.winner);
     }
   }
@@ -218,7 +211,6 @@ const makePlay = async (x, y) => {
 
       // data is { finished: 'yes' | 'no' }
       if (data.gameOver === true) {
-        successAlert.textContent = "The game is finished!";
         setWinnerDisp(data.winner);
       }
     }
@@ -238,7 +230,6 @@ function resetGame() {
   $("#box-1-1").html("");
   // We don't reset the error alert since an error may have caused the reset
   // and we error to still show after the game has reset
-  successAlert.textContent = "";
   accessCodeDisplay.textContent = "";
   gameState.eventSource.close();
   gameState = undefined;
