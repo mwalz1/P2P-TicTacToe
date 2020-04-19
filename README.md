@@ -42,10 +42,9 @@ brew install entr
 ## Swagger
 This project defines a `swagger.yml` file which can be converted into a website for visualization.
 
-#### Viewing
 To view this information, open up `index.html` in the browser of your choice. Alternatively, go to the [Swagger Editor](https://editor.swagger.io/), copy the contents of `swagger.yml` and paste the contents in the online editor.
 
-#### Generation
+<!-- #### Generation
 First, ensure `redoc-cli` is installed.
 ```
 npm install -g redoc-cli
@@ -54,4 +53,4 @@ npm install -g redoc-cli
 Next, run:
 ```
 redoc-cli bundle -o index.html swagger.yml
-```
+``` -->

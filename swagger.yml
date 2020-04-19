@@ -168,7 +168,7 @@ definitions:
         description: "Error message."
         example: "NO_GAME_CODE"
         type: "string"
-        enum: [NO_GAME_CODE, NO_GAME_FOUND]
+        enum: [NO_GAME_CODE, NO_GAME_FOUND, PLAYER_ALREADY_PRESENT]
   MoveSuccess:
     type: "object"
     properties:

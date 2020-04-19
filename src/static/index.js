@@ -16,6 +16,11 @@ let accessCode;
 let errorAlert
 
 /**
+ * @type {HTMLInputElement}
+ */
+let successAlert
+
+/**
  * @type {HTMLButtonElement}
  */
 let findGameButton
@@ -51,6 +56,7 @@ window.onload = () => {
   findGameButton = document.getElementById("find-game");
   hostGameButton = document.getElementById("host-game");
   resetGameButton = document.getElementById("reset-game");
+  successAlert = document.getElementById("success-alert");
 }
 
 const disableButtons = () => {
@@ -72,17 +78,17 @@ const enableButtons = () => {
  * @param {String} url
  */
 const createSource = (url) => {
-  // TODO error handling what if the url is bad?
   const source = new EventSource(url);
 
-  source.onerror = () => {
-    errorAlert.innerText = "Error connecting to server.";
-    resetGame(); // This will close the source
+  source.onerror = (event) => {
+    console.log(event);
+    errorAlert.innerText = "An error occurred during the SSE.";
+    source.close();
   }
 
   source.onmessage = (event) => {
     /**
-     * @type {{ location: [number, number] }}
+     * @type {{ location: [number, number], finished: "yes" | "no" }}
      */
     const data = JSON.parse(event.data);
     console.log(data);
@@ -92,6 +98,10 @@ const createSource = (url) => {
       placeMarker(x, y, "O");
     } else {
       placeMarker(x, y, "X");
+    }
+
+    if (data.finished === "yes") {
+      successAlert.textContent = "The game is finished!";
     }
   }
 
@@ -170,8 +180,11 @@ const makePlay = async (x, y) => {
       } else {
         placeMarker(x, y, "O");
       }
+
       // data is { finished: 'yes' | 'no' }
-      // TODO Use the data to set the game to finished or not maybe?
+      if (data.finished === "yes") {
+        successAlert.textContent = "The game is finished!";
+      }
     }
   );
 }
@@ -183,6 +196,8 @@ function resetGame() {
 
   // TODO: Remove
   $("#box-1-1").html("");
+  successAlert.textContent = "";
+  errorAlert.textContent = "";
   accessCodeDisplay.textContent = "";
   gameState.eventSource.close();
   gameState = undefined;
@@ -205,10 +220,8 @@ function resetGame() {
  *   data: any;
  * }
  * ```
- * @template T
  * @param {String} url 
- * @param {(data: T) => void} onSuccess 
- * @returns {{ result: "error", error: string } | { result: "success", data: T }}
+ * @param {(data: any) => void} onSuccess 
  */
 const get = async (url, onSuccess) => {
   const response = await fetch(url);
@@ -221,15 +234,11 @@ const get = async (url, onSuccess) => {
     json = await response.json();
   } catch (e) {
     console.error(`Invalid json while fetching ${url}: ${e}`);
-    return {
-      result: "error",
-      error: "INVALID_RESPONSE_JSON",
-    };
+    errorAlert.innerText = `Bad JSON from ${url}: ${response.text()}`;
   }
 
   if (json.result === "error") {
     errorAlert.innerText = `Bad request to ${url}: ${json.error}`;
-    return json;
   }
 
   console.log(`Data from ${url}: `, json.data);

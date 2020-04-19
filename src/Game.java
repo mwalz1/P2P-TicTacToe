@@ -64,7 +64,7 @@ class Game implements Disposer {
       return PlayResult.NOT_YOUR_TURN;
     }
 
-    // TODO remove this
+    // TODO BUG
     // The following code is a bug
     // We set this.next to the next player *but* it's possible that there are errors
     // If these errors occur then that player loses their turn
@@ -93,11 +93,14 @@ class Game implements Disposer {
       this.game[x][y] = State.O;
     }
 
+    this.checkFinished();
+
     Game.log.info(player.toString() + " played " + this.game[x][y].toString() + " at " + x + ", " + y);
     String message = String.format(
-      "data: { \"location\": [%d, %d] }\n\n", 
+      "data: { \"location\": [%d, %d], \"finished\": %s }\n\n", 
       x,
-      y
+      y,
+      this.finished ? "\"yes\"" : "\"no\""
     );
 
     try {
@@ -107,13 +110,19 @@ class Game implements Disposer {
       Game.log.severe("Unknown IOException while writing to SSE stream: " + e.toString());
     }
 
-    this.checkFinished();
-
     if (this.finished) {
       return PlayResult.GAME_FINISHED;
     } else {
       return PlayResult.GAME_NOT_FINISHED;
     }
+  }
+
+  public boolean hasHost() {
+    return this.host.isPresent();
+  }
+
+  public boolean hasOpponent() {
+    return this.opponent.isPresent();
   }
 
   /**
@@ -181,7 +190,7 @@ class Game implements Disposer {
       return true;
     }
 
-    // TODO remove this comment but the following code is a bug
+    // TODO BUG
     // The following check should be
     // this.game[2][0] == state &&
     // this.game[1][1] == state &&

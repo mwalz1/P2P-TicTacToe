@@ -43,6 +43,10 @@ class GameManager implements Disposer {
   public void joinAsHost(HttpExchange exchange) {
     String gameCode = this.getGameCodeOrThrow(exchange);
     Game game = this.getGameOrThrow(gameCode);
+    if (game.hasHost()) {
+      throw new HttpError400("PLAYER_ALREADY_PRESENT");
+    }
+
     GameManager.log.info(String.format("Player joined as host (%s)!", gameCode));
     Utils.sendSseStream(exchange);
     final OutputStream body = exchange.getResponseBody();
@@ -52,6 +56,10 @@ class GameManager implements Disposer {
   public void joinAsOpponent(HttpExchange exchange) {
     String gameCode = this.getGameCodeOrThrow(exchange);
     Game game = this.getGameOrThrow(gameCode);
+    if (game.hasOpponent()) {
+      throw new HttpError400("PLAYER_ALREADY_PRESENT");
+    }
+
     GameManager.log.info(String.format("Player joined as opponent (%s)!", gameCode));
     Utils.sendSseStream(exchange);
     final OutputStream body = exchange.getResponseBody();
