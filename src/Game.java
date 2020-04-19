@@ -25,6 +25,9 @@ enum PlayResult {
   GAME_NOT_FINISHED,
 }
 
+/**
+ * The Game class. Represents a single game of Tic-Tac-Toe.
+ */
 class Game implements Disposer {
   private final static Logger log = Logger.getLogger(Main.class.getName());
   public final String accessCode;
@@ -34,6 +37,7 @@ class Game implements Disposer {
   private Optional<OutputStream> opponent = Optional.empty();
   private Player next = Player.HOST;
   private boolean finished = false;
+  private int count = 0;
 
   Game() {
     State[] row1 = { State.EMPTY, State.EMPTY, State.EMPTY };
@@ -46,6 +50,11 @@ class Game implements Disposer {
     this.gameCode = Utils.getAlphaNumericString(20);
   }
 
+  /**
+   * @param player The player who is making the move.
+   * @param x The row index (starting at 0).
+   * @param y The column index (starting at 0).
+   */
   PlayResult play(Player player, int x, int y) {
     if (this.finished) {
       return PlayResult.GAME_ALREADY_FINISHED;
@@ -73,6 +82,7 @@ class Game implements Disposer {
       return PlayResult.PLACEMENT_CONFLICT;
     }
 
+    this.count++;
     if (player == Player.HOST) {
       this.game[x][y] = State.X;
     } else {
@@ -102,8 +112,11 @@ class Game implements Disposer {
     }
   }
 
+  /**
+   * Set the host.
+   */
   public boolean setHost(OutputStream host) {
-    if (!this.host.isPresent()) {
+    if (this.host.isPresent()) {
       return false;
     }
 
@@ -111,8 +124,11 @@ class Game implements Disposer {
     return true;
   }
 
+  /**
+   * Set the opponent.
+   */
   public boolean setOpponent(OutputStream opponent) {
-    if (!this.opponent.isPresent()) {
+    if (this.opponent.isPresent()) {
       return false;
     }
 
@@ -120,13 +136,16 @@ class Game implements Disposer {
     return true;
   }
 
+  /**
+   * Dispose of the host and opponent.
+   */
   public void dispose() {
     this.host.ifPresent(Utils::tryToClose);
     this.opponent.ifPresent(Utils::tryToClose);
   }
 
   private void checkFinished() {
-    this.finished = this.checkWon(State.X) || this.checkWon(State.O);
+    this.finished = this.count == 9 || this.checkWon(State.X) || this.checkWon(State.O);
   }
 
   private boolean checkWon(State state) {

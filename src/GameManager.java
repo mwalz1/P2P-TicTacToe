@@ -91,6 +91,9 @@ class GameManager implements Disposer {
 
     Map<String, String> response = new HashMap<>();
     if (result == PlayResult.GAME_FINISHED) {
+      // ensure we remove the game once finished
+      // TODO notify other player
+      this.games.remove(game);
       response.put("finished", "yes");
     } else {
       response.put("finished", "no");

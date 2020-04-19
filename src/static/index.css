@@ -1,49 +1,10 @@
-/* .flex {
+.flex {
   display: flex;
-}
-
-.flex-column {
-  flex-direction: column;
 }
 
 .justify-center {
   justify-content: center;
 }
-
-.align-center {
-  align-items: center;
-}
-
-.flex-grow {
-  flex-grow: 1;
-}
-
-.w-full {
-  width: 100%;
-}
-
-.output {
-  width: 400px;
-  background: #dadada;
-  padding: 4px;
-  border-radius: 4px;
-}
-
-.me, .them {
-  display: flex;
-}
-
-.me div::before {
-  content: "ME: ";
-}
-
-.them div::before {
-  content: "THEM: ";
-}
-
-.me {
-  justify-content: flex-end;
-} */
 
 #game-board {
   width: 50%;
@@ -60,6 +21,31 @@
 }
 
 .row-cols-3 > * {
-   flex: 0 0 33.333333%;
-   max-width: 33.333333%;
+  flex: 0 0 33.333333%;
+  max-width: 33.333333%;
+}
+
+.invisible-if-empty:empty {
+  display: none;
+}
+
+.x-box::after, .o-box::after {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  line-height: 108px;
+  font-size: 45px;
+  color: white;
+  text-align: center;
+  margin: auto;
+}
+
+.x-box::after {
+  content: "X";
+}
+
+.o-box::after {
+  content: "O";
 }

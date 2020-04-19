@@ -4,13 +4,35 @@
  * @type {HTMLInputElement}
  */
 let accessCodeDisplay;
+
 /**
  * @type {HTMLInputElement}
  */
 let accessCode;
 
 /**
- * @type {{ player: 'HOST' | 'OPPONENT', gameCode: string }}
+ * @type {HTMLInputElement}
+ */
+let errorAlert
+
+/**
+ * @type {HTMLButtonElement}
+ */
+let findGameButton
+
+/**
+ * @type {HTMLButtonElement}
+ */
+let hostGameButton
+
+
+/**
+ * @type {HTMLButtonElement}
+ */
+let resetGameButton
+
+/**
+ * @type {{ player: 'HOST' | 'OPPONENT', gameCode: string, eventSource: EventSource }}
  */
 let gameState
 
@@ -25,6 +47,22 @@ let clientScore = 0;
 window.onload = () => {
   accessCodeDisplay = document.getElementById("access-code-display");
   accessCode = document.getElementById("access-code");
+  errorAlert = document.getElementById("error-alert");
+  findGameButton = document.getElementById("find-game");
+  hostGameButton = document.getElementById("host-game");
+  resetGameButton = document.getElementById("reset-game");
+}
+
+const disableButtons = () => {
+  findGameButton.disabled = true;
+  hostGameButton.disabled = true;
+  resetGameButton.disabled = false;
+}
+
+const enableButtons = () => {
+  findGameButton.disabled = false;
+  hostGameButton.disabled = false;
+  resetGameButton.disabled = true;
 }
 
 /**
@@ -37,67 +75,30 @@ const createSource = (url) => {
   // TODO error handling what if the url is bad?
   const source = new EventSource(url);
 
+  source.onerror = (event) => {
+    console.log("onerror: " + event, source.readyState, event.eventPhase);
+    if (source.readyState === EventSource.CLOSED) {
+      errorAlert.innerText = "Error connecting to server.";
+      resetGame();
+    }
+  }
+
   source.onmessage = (event) => {
-    // TODO error handling what if JSON.parse fails?
     /**
-     * @type {{ location: [number, number], move: "O" | "X" }}
+     * @type {{ location: [number, number] }}
      */
     const data = JSON.parse(event.data);
-
-    // TODO handle this on the board
-    // The data represents a move that an opponent made!
     console.log(data);
-  }
-}
 
-/**
- * Sends a get request to the given url. Returns nothing if an error occurs (it will print the
- * error though). If no error occurs, it returns the data in the json.
- *
- * Expects the data to be in the following format:
- * ```
- * {
- *   result: "error";
- *   error: string;
- * }
- *
- * // or
- * {
- *   result: "success";
- *   data: any;
- * }
- * ```
- * @template T
- * @param {String} url
- * @param {(data: T) => void} onSuccess
- * @returns {{ result: "error", error: string } | { result: "success", data: T }}
- */
-const get = async (url, onSuccess) => {
-  const response = await fetch(url);
-
-  // TODO implement very simple error handling
-  // Maybe we could have a little error box that shows up when an error occurs?
-  /**
-   * @type {{ result: "error", error: string } | { result: "success", data: T }}
-   */
-  let json
-  try {
-    json = await response.json();
-  } catch (e) {
-    console.error(`Invalid json while fetching ${url}: ${e}`);
-    return {
-      result: "error",
-      error: "INVALID_RESPONSE_JSON",
-    };
+    const [x, y] = data.location;
+    if (gameState.player === "HOST") {
+      placeMarker(x, y, "O");
+    } else {
+      placeMarker(x, y, "X");
+    }
   }
 
-  if (json.result === "error") {
-    console.error(`Bad request to ${url}: ${json.error}`)
-    return json;
-  }
-
-  console.log(`Data from ${url}: `, json.data);
-  await onSuccess(json.data);
+  return source;
 }
 
 /**
@@ -111,10 +112,11 @@ const hostGame = async () => {
     gameState = {
       player: "HOST",
       gameCode: data.gameCode,
+      eventSource: createSource(`/api/join-as-host?gameCode=${data.gameCode}`),
     };
-
+    
+    disableButtons();
     accessCodeDisplay.textContent = data.accessCode;
-    createSource(`/api/join-as-host?gameCode=${gameState.gameCode}`);
   });
 }
 
@@ -130,9 +132,10 @@ const findGame = async () => {
     gameState = {
       player: "OPPONENT",
       gameCode: data.gameCode,
+      eventSource: createSource(`/api/join-as-opponent?gameCode=${data.gameCode}`),
     }
 
-    createSource(`/api/join-as-opponent?gameCode=${gameState.gameCode}`);
+    disableButtons();
   });
 }
 
@@ -142,122 +145,96 @@ const findGame = async () => {
  * @param {0 | 1 | 2} y
  * @param {"X" | "O"} state
  */
-const playRequest = async (x, y, state) => {
-  console.log(`Making play at ${x},${y} -> ${state}`);
+const placeMarker = async (x, y, state) => {
+  console.log(`Placing ${state} at ${x},${y}.`);
+  if (state === "X") {
+    $(`#box-${x}-${y}`).removeClass("free-box").addClass("x-box");
+  } else {
+    $(`#box-${x}-${y}`).removeClass("free-box").addClass("o-box");
+  }
+}
+
+/**
+ * 
+ * @param {0 | 1 | 2} x The row index.
+ * @param {0 | 1 | 2} y The column index.
+ */
+const makePlay = async (x, y) => {
+  if (!gameState) {
+    errorAlert.innerText = "The game has not yet started!";
+    return;
+  }
+
   await get(
-    `/api/move?x=${x}&y=${y}&state=${state}&player=${gameState.player}&gameCode=${gameState.gameCode}`,
+    `/api/move?x=${x}&y=${y}&player=${gameState.player}&gameCode=${gameState.gameCode}`,
     (data) => {
+      if (gameState.player === "HOST") {
+        placeMarker(x, y, "X");
+      } else {
+        placeMarker(x, y, "O");
+      }
       // data is { finished: 'yes' | 'no' }
       // TODO Use the data to set the game to finished or not maybe?
     }
   );
 }
 
-function makePlay(box) {
-  if (!gameOver && $("#" + box.id).hasClass("free-box")) {
-    if (hostTurn) {
-      $("#" + box.id).removeClass("free-box").addClass("x-box");
-      $("#" + box.id).removeClass("bg-dark").addClass("bg-success");
-    }
-    else if (!hostTurn) {
-      $("#" + box.id).removeClass("free-box").addClass("o-box");
-      $("#" + box.id).removeClass("bg-dark").addClass("bg-danger");
-    }
-
-    hostTurn = !hostTurn;
-    boxCount++;
-
-    checkWinner();
-  }
-  else if ($("#" + box.id).hasClass("restart-box")) {
-    resetGame();
-  }
-}
-
 function resetGame() {
-  $(".x-box").removeClass("bg-success").addClass("bg-dark");
   $(".x-box").removeClass("x-box").addClass("free-box");
-  $(".o-box").removeClass("bg-danger").addClass("bg-dark");
   $(".o-box").removeClass("o-box").addClass("free-box");
+  enableButtons();
 
   // TODO: Remove
-  $("#box-2-2").html("");
-
-  gameOver = false;
-  boxCount = 0;
+  $("#box-1-1").html("");
+  accessCodeDisplay.textContent = "";
+  gameState.eventSource.close();
+  gameState = undefined;
 }
 
-function checkWinner() {
-  if (boxCount >= 9) {
-    gameOver = true;
-  }
-  if (boxCount >= 3) {
-    // Do a bunch of checks
-    if (
-      ($("#box-1-1").hasClass("x-box") &&
-      $("#box-1-2").hasClass("x-box") &&
-      $("#box-1-3").hasClass("x-box")) ||
-      ($("#box-2-1").hasClass("x-box") &&
-      $("#box-2-2").hasClass("x-box") &&
-      $("#box-2-3").hasClass("x-box")) ||
-      ($("#box-3-1").hasClass("x-box") &&
-      $("#box-3-2").hasClass("x-box") &&
-      $("#box-3-3").hasClass("x-box")) ||
-      ($("#box-1-1").hasClass("x-box") &&
-      $("#box-2-1").hasClass("x-box") &&
-      $("#box-3-1").hasClass("x-box")) ||
-      ($("#box-1-2").hasClass("x-box") &&
-      $("#box-2-2").hasClass("x-box") &&
-      $("#box-3-2").hasClass("x-box")) ||
-      ($("#box-1-3").hasClass("x-box") &&
-      $("#box-2-3").hasClass("x-box") &&
-      $("#box-3-3").hasClass("x-box")) ||
-      ($("#box-1-1").hasClass("x-box") &&
-      $("#box-2-2").hasClass("x-box") &&
-      $("#box-3-3").hasClass("x-box")) ||
-      ($("#box-1-3").hasClass("x-box") &&
-      $("#box-2-2").hasClass("x-box") &&
-      $("#box-3-1").hasClass("x-box"))
-    ) {
-      hostScore++;
-      gameOver = true;
-    }
-    else if (
-      // TODO: probs swap to an array of 0s and 1s.
-      ($("#box-1-1").hasClass("o-box") &&
-      $("#box-1-2").hasClass("o-box") &&
-      $("#box-1-3").hasClass("o-box")) ||
-      ($("#box-2-1").hasClass("o-box") &&
-      $("#box-2-2").hasClass("o-box") &&
-      $("#box-2-3").hasClass("o-box")) ||
-      ($("#box-3-1").hasClass("o-box") &&
-      $("#box-3-2").hasClass("o-box") &&
-      $("#box-3-3").hasClass("o-box")) ||
-      ($("#box-1-1").hasClass("o-box") &&
-      $("#box-2-1").hasClass("o-box") &&
-      $("#box-3-1").hasClass("o-box")) ||
-      ($("#box-1-2").hasClass("o-box") &&
-      $("#box-2-2").hasClass("o-box") &&
-      $("#box-3-2").hasClass("o-box")) ||
-      ($("#box-1-3").hasClass("o-box") &&
-      $("#box-2-3").hasClass("o-box") &&
-      $("#box-3-3").hasClass("o-box")) ||
-      ($("#box-1-1").hasClass("o-box") &&
-      $("#box-2-2").hasClass("o-box") &&
-      $("#box-3-3").hasClass("o-box")) ||
-      ($("#box-1-3").hasClass("o-box") &&
-      $("#box-2-2").hasClass("o-box") &&
-      $("#box-3-1").hasClass("o-box"))
-    ) {
-      clientScore++;
-      gameOver = true;
-    }
+/**
+ * Sends a get request to the given url. Returns nothing if an error occurs (it will print the 
+ * error though). If no error occurs, it returns the data in the json.
+ * 
+ * Expects the data to be in the following format:
+ * ```
+ * {
+ *   result: "error";
+ *   error: string;
+ * }
+ * 
+ * // or
+ * {
+ *   result: "success";
+ *   data: any;
+ * }
+ * ```
+ * @template T
+ * @param {String} url 
+ * @param {(data: T) => void} onSuccess 
+ * @returns {{ result: "error", error: string } | { result: "success", data: T }}
+ */
+const get = async (url, onSuccess) => {
+  const response = await fetch(url);
+
+  /**
+   * @type {{ result: "error", error: string } | { result: "success", data: T }}
+   */
+  let json
+  try {
+    json = await response.json();
+  } catch (e) {
+    console.error(`Invalid json while fetching ${url}: ${e}`);
+    return {
+      result: "error",
+      error: "INVALID_RESPONSE_JSON",
+    };
   }
 
-  if (gameOver) {
-    $("#box-2-2").addClass("restart-box").html("Click for new game.");
-
-    // TODO: Remove.
-    console.log("host score:" + hostScore + "\nclient score:" + clientScore);
+  if (json.result === "error") {
+    errorAlert.innerText = `Bad request to ${url}: ${json.error}`;
+    return json;
   }
+
+  console.log(`Data from ${url}: `, json.data);
+  await onSuccess(json.data);
 }

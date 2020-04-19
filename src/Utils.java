@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.Headers;
-import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpHandler;
 
 class Utils {
