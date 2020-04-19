@@ -14,16 +14,24 @@ let accessCode;
  */
 let gameState
 
+let gameOver = false;
+let hostTurn = true;
+
+let boxCount = 0;
+let hostScore = 0;
+let clientScore = 0;
+
+
 window.onload = () => {
   accessCodeDisplay = document.getElementById("access-code-display");
   accessCode = document.getElementById("access-code");
 }
 
 /**
- * Create a SSE listener to listen for events from the game server. Each event represents a move 
+ * Create a SSE listener to listen for events from the game server. Each event represents a move
  * made by the opposing player.
- * 
- * @param {String} url 
+ *
+ * @param {String} url
  */
 const createSource = (url) => {
   // TODO error handling what if the url is bad?
@@ -43,16 +51,16 @@ const createSource = (url) => {
 }
 
 /**
- * Sends a get request to the given url. Returns nothing if an error occurs (it will print the 
+ * Sends a get request to the given url. Returns nothing if an error occurs (it will print the
  * error though). If no error occurs, it returns the data in the json.
- * 
+ *
  * Expects the data to be in the following format:
  * ```
  * {
  *   result: "error";
  *   error: string;
  * }
- * 
+ *
  * // or
  * {
  *   result: "success";
@@ -60,8 +68,8 @@ const createSource = (url) => {
  * }
  * ```
  * @template T
- * @param {String} url 
- * @param {(data: T) => void} onSuccess 
+ * @param {String} url
+ * @param {(data: T) => void} onSuccess
  * @returns {{ result: "error", error: string } | { result: "success", data: T }}
  */
 const get = async (url, onSuccess) => {
@@ -104,7 +112,7 @@ const hostGame = async () => {
       player: "HOST",
       gameCode: data.gameCode,
     };
-  
+
     accessCodeDisplay.textContent = data.accessCode;
     createSource(`/api/join-as-host?gameCode=${gameState.gameCode}`);
   });
@@ -123,16 +131,16 @@ const findGame = async () => {
       player: "OPPONENT",
       gameCode: data.gameCode,
     }
-  
+
     createSource(`/api/join-as-opponent?gameCode=${gameState.gameCode}`);
   });
 }
 
 /**
- * 
- * @param {0 | 1 | 2} x 
- * @param {0 | 1 | 2} y 
- * @param {"X" | "O"} state 
+ *
+ * @param {0 | 1 | 2} x
+ * @param {0 | 1 | 2} y
+ * @param {"X" | "O"} state
  */
 const playRequest = async (x, y, state) => {
   console.log(`Making play at ${x},${y} -> ${state}`);
@@ -144,13 +152,6 @@ const playRequest = async (x, y, state) => {
     }
   );
 }
-
-hostTurn = true;
-gameOver = false;
-boxCount = 0;
-
-hostScore = 0;
-clientScore = 0;
 
 function makePlay(box) {
   if (!gameOver && $("#" + box.id).hasClass("free-box")) {
