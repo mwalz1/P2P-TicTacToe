@@ -20,7 +20,7 @@
       <!-- Hosting Row -->
       <div class="row">
         <div class="col-sm">
-          <button class="btn btn-dark" onclick="hostGame()">
+          <button id="host-game" class="btn btn-dark" onclick="hostGame()">
             Host Game
           </button>
           <span id="access-code-display"></span>
@@ -32,7 +32,7 @@
           </div>
           <input id="access-code" name="accessCode" class="form-control">
           <div class="input-group-append">
-            <button class="btn btn-dark" onclick="findGame()">
+            <button id="find-game" class="btn btn-dark" onclick="findGame()">
               Find Game
             </button>
           </div>
@@ -42,21 +42,25 @@
       <!-- TODO: Migrate to seperate file/screen -->
       <!-- Tic Tac Toe Board -->
       <hr>
-      <h3>TODO: Move Me</h1>
       <div class="container mx-100">
         <div id="game-board" class="row row-cols-3">
-          <div id="box-0-0" class="col bg-dark free-box border border-light" onclick="makePlay(this, 0, 0)"></div>
-          <div id="box-0-1" class="col bg-dark free-box border border-light" onclick="makePlay(this, 0, 1)"></div>
-          <div id="box-0-2" class="col bg-dark free-box border border-light" onclick="makePlay(this, 0, 2)"></div>
-          <div id="box-1-0" class="col bg-dark free-box border border-light" onclick="makePlay(this, 1, 0)"></div>
-          <div id="box-1-1" class="col bg-dark free-box border border-light" onclick="makePlay(this, 1, 1)"></div>
-          <div id="box-1-2" class="col bg-dark free-box border border-light" onclick="makePlay(this, 1, 2)"></div>
-          <div id="box-2-0" class="col bg-dark free-box border border-light" onclick="makePlay(this, 2, 0)"></div>
-          <div id="box-2-1" class="col bg-dark free-box border border-light" onclick="makePlay(this, 2, 1)"></div>
-          <div id="box-2-2" class="col bg-dark free-box border border-light" onclick="makePlay(this, 2, 2)"></div>
+          <div id="box-0-0" class="col bg-dark free-box border border-light" onclick="makePlay(0, 0)"></div>
+          <div id="box-0-1" class="col bg-dark free-box border border-light" onclick="makePlay(0, 1)"></div>
+          <div id="box-0-2" class="col bg-dark free-box border border-light" onclick="makePlay(0, 2)"></div>
+          <div id="box-1-0" class="col bg-dark free-box border border-light" onclick="makePlay(1, 0)"></div>
+          <div id="box-1-1" class="col bg-dark free-box border border-light" onclick="makePlay(1, 1)"></div>
+          <div id="box-1-2" class="col bg-dark free-box border border-light" onclick="makePlay(1, 2)"></div>
+          <div id="box-2-0" class="col bg-dark free-box border border-light" onclick="makePlay(2, 0)"></div>
+          <div id="box-2-1" class="col bg-dark free-box border border-light" onclick="makePlay(2, 1)"></div>
+          <div id="box-2-2" class="col bg-dark free-box border border-light" onclick="makePlay(2, 2)"></div>
         </div>
         <div class="row pt-3">
           <div class="col alert alert-danger invisible-if-empty" role="alert" id="error-alert"></div>
+        </div>
+        <div class="flex justify-center">
+          <button id="reset-game" class="btn btn-dark" onclick="resetGame()" disabled>
+            Reset
+          </button>
         </div>
       </div>
 
