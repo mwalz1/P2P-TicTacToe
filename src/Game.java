@@ -25,12 +25,6 @@ enum PlayResult {
   GAME_NOT_FINISHED,
 }
 
-enum FinishState {
-  NONE,
-  HOST_WON,
-  OPPONENT_WON,
-}
-
 /**
  * The Game class. Represents a single game of Tic-Tac-Toe.
  */
@@ -42,7 +36,7 @@ class Game implements Disposer {
   private Optional<OutputStream> host = Optional.empty();
   private Optional<OutputStream> opponent = Optional.empty();
   private Player next = Player.HOST;
-  private FinishState finished = null;
+  private boolean finished = false;
   private int count = 0;
 
   Game() {
@@ -62,7 +56,7 @@ class Game implements Disposer {
    * @param y The column index (starting at 0).
    */
   PlayResult play(Player player, int x, int y) {
-    if (this.finished != null) {
+    if (this.finished) {
       return PlayResult.GAME_ALREADY_FINISHED;
     }
 
@@ -74,6 +68,7 @@ class Game implements Disposer {
     // The following code is a bug
     // We set this.next to the next player *but* it's possible that there are errors
     // If these errors occur then that player loses their turn
+    // this.next should only be set after we've checked all error conditions
     OutputStream stream;
     if (this.next == Player.HOST) {
       this.next = Player.OPPONENT;
@@ -96,18 +91,17 @@ class Game implements Disposer {
     if (player == Player.HOST) {
       this.game[x][y] = State.X;
     } else {
-      this.game[x][y] = State.O;
+      // TODO BUG
+      // This index is wrong it should be [x][y] like above
+      this.game[y][y] = State.O;
     }
-
-    this.checkFinished();
 
     Game.log.info(player.toString() + " played " + this.game[x][y].toString() + " at " + x + ", " + y);
     String message = String.format(
-      "data: { \"location\": [%d, %d], \"gameOver\": %s, \"winner\": \"%s\" }\n\n", 
+      "data: { \"location\": [%d, %d], \"gameOver\": %s }\n\n", 
       x,
       y,
-      this.finished != null,
-      this.whoWon()
+      this.finished
     );
 
     try {
@@ -117,7 +111,11 @@ class Game implements Disposer {
       Game.log.severe("Unknown IOException while writing to SSE stream: " + e.toString());
     }
 
-    if (this.finished != null) {
+    // TODO BUG
+    // This should take place above before we write to the stream
+    this.checkFinished();
+
+    if (this.finished) {
       return PlayResult.GAME_FINISHED;
     } else {
       return PlayResult.GAME_NOT_FINISHED;
@@ -164,18 +162,8 @@ class Game implements Disposer {
     this.opponent.ifPresent(Utils::tryToClose);
   }
 
-  public String whoWon() {
-    return this.finished == FinishState.HOST_WON ? "HOST" : this.finished == FinishState.OPPONENT_WON ? "OPPONENT" : "NONE";
-  }
-
   private void checkFinished() {
-    if (this.checkWon(State.X)) {
-      this.finished = FinishState.HOST_WON;
-    } else if (this.checkWon(State.O)) {
-      this.finished = FinishState.OPPONENT_WON;
-    } else if (this.count == 9) {
-      this.finished = FinishState.NONE;
-    }
+    this.finished = this.checkWon(State.X) || this.checkWon(State.O) || this.count == 9;
   }
 
   private boolean checkWon(State state) {

@@ -78,15 +78,21 @@ const setTurnDisp = () => {
   }
 }
 
+/**
+ * 
+ * @param {"HOST" | "OPPONENT" | "NONE" | undefined} winner 
+ */
 const setWinnerDisp = (winner) => {
   $("#game-stat-disp").removeClass("invisible").addClass("visible");
 
   if ((winner === "HOST" && gameState.player === "HOST") || (winner === "OPPONENT" && gameState.player === "OPPONENT")) {
     gameStatusDisplay.textContent = "You Won!";
   } else if ((winner === "HOST" && gameState.player === "OPPONENT") || (winner === "OPPONENT" && gameState.player === "HOST")) {
-    gameStatusDisplay.textContent = "Better Luck Next Time";
+    gameStatusDisplay.textContent = "Better Luck Next Time!";
   } else if (winner === "NONE") {
     gameStatusDisplay.textContent = "No Winner for this Game.";
+  } else {
+    gameStatusDisplay.textContent = "The game is done!";
   }
 }
 
@@ -209,8 +215,7 @@ const makePlay = async (x, y) => {
         placeMarker(x, y, "O");
       }
 
-      // data is { finished: 'yes' | 'no' }
-      if (data.gameOver === true) {
+      if (data.gameOver) {
         setWinnerDisp(data.winner);
       }
     }

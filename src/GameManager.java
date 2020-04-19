@@ -67,6 +67,7 @@ class GameManager implements Disposer {
   }
 
   public void move(HttpExchange exchange) {
+    System.out.println("MOVE");
     String gameCode = this.getGameCodeOrThrow(exchange);
     Game game = this.getGameOrThrow(gameCode);
 
@@ -100,7 +101,6 @@ class GameManager implements Disposer {
     Map<String, Object> response = new HashMap<>();
     if (result == PlayResult.GAME_FINISHED) {
       this.games.remove(game);
-      response.put("winner", game.whoWon());
       response.put("gameOver", true);
     } else {
       response.put("gameOver", false);
