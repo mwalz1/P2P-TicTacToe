@@ -109,11 +109,24 @@ const clearTurnDisp = () => {
 }
 
 const updateScoreDisp = (winner) => {
-  if (gameState.player ==== "HOST") {
-    scoreDisplay.textContent = "You:" + hostScore "; Opponent:" + clientScore;
+  if (gameState.player === "HOST") {
+    if (winner === "HOST") {
+      hostScore++;
+    } else if (winner === "OPPONENT") {
+      clientScore++;
+    }
+  } else {
+    if (winner === "HOST") {
+      clientScore++;
+    } else if (winner === "OPPONENT") {
+      hostScore++;
+    }
   }
-  else {
-    scoreDisplay.textContent = "You:" + clientScore "; Opponent:" + hostScore;
+
+  if (gameState.player == "HOST") {
+    scoreDisplay.textContent = "You:" + hostScore + "; Opponent:" + clientScore;
+  } else {
+    scoreDisplay.textContent = "You:" + clientScore + "; Opponent:" + hostScore;
   }
 }
 
@@ -151,12 +164,6 @@ const createSource = (url) => {
     }
 
     if (data.gameOver === true) {
-      if (winner === "HOST") {
-        hostScore++;
-      } else if (winner === "OPPONENT") {
-        clientScore++;
-      }
-
       successAlert.textContent = "The game is finished!";
       setWinnerDisp(data.winner);
       updateScoreDisp(data.winner);

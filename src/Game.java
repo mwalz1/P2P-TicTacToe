@@ -25,6 +25,12 @@ enum PlayResult {
   GAME_NOT_FINISHED,
 }
 
+enum FinishState {
+  NONE,
+  HOST_WON,
+  OPPONENT_WON,
+}
+
 /**
  * The Game class. Represents a single game of Tic-Tac-Toe.
  */
@@ -36,7 +42,7 @@ class Game implements Disposer {
   private Optional<OutputStream> host = Optional.empty();
   private Optional<OutputStream> opponent = Optional.empty();
   private Player next = Player.HOST;
-  private boolean finished = false;
+  private FinishState finished = null;
   private int count = 0;
 
   Game() {
@@ -56,7 +62,7 @@ class Game implements Disposer {
    * @param y The column index (starting at 0).
    */
   PlayResult play(Player player, int x, int y) {
-    if (this.finished) {
+    if (this.finished != null) {
       return PlayResult.GAME_ALREADY_FINISHED;
     }
 
@@ -97,10 +103,11 @@ class Game implements Disposer {
 
     Game.log.info(player.toString() + " played " + this.game[x][y].toString() + " at " + x + ", " + y);
     String message = String.format(
-      "data: { \"location\": [%d, %d], \"finished\": %s }\n\n", 
+      "data: { \"location\": [%d, %d], \"gameOver\": %s, \"winner\": \"%s\" }\n\n", 
       x,
       y,
-      this.finished ? "\"yes\"" : "\"no\""
+      this.finished != null,
+      this.whoWon()
     );
 
     try {
@@ -110,7 +117,7 @@ class Game implements Disposer {
       Game.log.severe("Unknown IOException while writing to SSE stream: " + e.toString());
     }
 
-    if (this.finished) {
+    if (this.finished != null) {
       return PlayResult.GAME_FINISHED;
     } else {
       return PlayResult.GAME_NOT_FINISHED;
@@ -157,8 +164,18 @@ class Game implements Disposer {
     this.opponent.ifPresent(Utils::tryToClose);
   }
 
+  public String whoWon() {
+    return this.finished == FinishState.HOST_WON ? "HOST" : this.finished == FinishState.OPPONENT_WON ? "OPPONENT" : "NONE";
+  }
+
   private void checkFinished() {
-    this.finished = this.count == 9 || this.checkWon(State.X) || this.checkWon(State.O);
+    if (this.checkWon(State.X)) {
+      this.finished = FinishState.HOST_WON;
+    } else if (this.checkWon(State.O)) {
+      this.finished = FinishState.OPPONENT_WON;
+    } else if (this.count == 9) {
+      this.finished = FinishState.NONE;
+    }
   }
 
   private boolean checkWon(State state) {
