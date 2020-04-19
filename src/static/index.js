@@ -30,6 +30,15 @@ let findGameButton
  */
 let hostGameButton
 
+/**
+ * @type {HTMLButtonElement}
+ */
+let gameStatusDisplay;
+
+/**
+ * @type {HTMLButtonElement}
+ */
+let scoreDisplay
 
 /**
  * @type {HTMLButtonElement}
@@ -55,6 +64,8 @@ window.onload = () => {
   errorAlert = document.getElementById("error-alert");
   findGameButton = document.getElementById("find-game");
   hostGameButton = document.getElementById("host-game");
+  gameStatusDisplay = document.getElementById("game-stat-disp");
+  scoreDisplay = document.getElementById("score-disp");
   resetGameButton = document.getElementById("reset-game");
   successAlert = document.getElementById("success-alert");
 }
@@ -69,6 +80,45 @@ const enableButtons = () => {
   findGameButton.disabled = false;
   hostGameButton.disabled = false;
   resetGameButton.disabled = true;
+}
+
+const setTurnDisp = () => {
+  $("#game-stat-disp").removeClass("invisible").addClass("visible");
+
+  if ((gameState.player === "HOST" && hostTurn) || (gameState.player === "OPPONENT" && !hostTurn)) {
+    gameStatusDisplay.textContent = "Your Move";
+  } else {
+    gameStatusDisplay.textContent = "Opponent's Move";
+  }
+}
+
+const setWinnerDisp = (winner) => {
+  $("#game-stat-disp").removeClass("invisible").addClass("visible");
+
+  if ((winner === "HOST" && gameState.player === "HOST") || (winner === "OPPONENT" && gameState.player === "OPPONENT")) {
+    gameStatusDisplay.textContent = "You Won!";
+  } else if ((winner === "HOST" && gameState.player === "OPPONENT") || (winner === "OPPONENT" && gameState.player === "HOST")) {
+    gameStatusDisplay.textContent = "Better Luck Next Time";
+  } else if (winner === "NONE") {
+    gameStatusDisplay.textContent = "No Winner for this Game.";
+  }
+}
+
+const clearTurnDisp = () => {
+  $("#game-stat-disp").removeClass("visible").addClass("invisible");
+}
+
+const updateScoreDisp = (winner) => {
+  if (gameState.player ==== "HOST") {
+    scoreDisplay.textContent = "You:" + hostScore "; Opponent:" + clientScore;
+  }
+  else {
+    scoreDisplay.textContent = "You:" + clientScore "; Opponent:" + hostScore;
+  }
+}
+
+const resetScore = () => {
+  scoreDisplay.textContent = "You:0; Opponent:0";
 }
 
 /**
@@ -100,8 +150,16 @@ const createSource = (url) => {
       placeMarker(x, y, "X");
     }
 
-    if (data.finished === "yes") {
+    if (data.gameOver === true) {
+      if (winner === "HOST") {
+        hostScore++;
+      } else if (winner === "OPPONENT") {
+        clientScore++;
+      }
+
       successAlert.textContent = "The game is finished!";
+      setWinnerDisp(data.winner);
+      updateScoreDisp(data.winner);
     }
   }
 
@@ -121,7 +179,8 @@ const hostGame = async () => {
       gameCode: data.gameCode,
       eventSource: createSource(`/api/join-as-host?gameCode=${data.gameCode}`),
     };
-    
+
+    setTurnDisp();
     disableButtons();
     accessCodeDisplay.textContent = data.accessCode;
   });
@@ -142,6 +201,7 @@ const findGame = async () => {
       eventSource: createSource(`/api/join-as-opponent?gameCode=${data.gameCode}`),
     }
 
+    setTurnDisp();
     disableButtons();
   });
 }
@@ -159,10 +219,13 @@ const placeMarker = async (x, y, state) => {
   } else {
     $(`#box-${x}-${y}`).removeClass("free-box").addClass("o-box");
   }
+
+  hostTurn = !hostTurn;
+  setTurnDisp();
 }
 
 /**
- * 
+ *
  * @param {0 | 1 | 2} x The row index.
  * @param {0 | 1 | 2} y The column index.
  */
@@ -182,17 +245,23 @@ const makePlay = async (x, y) => {
       }
 
       // data is { finished: 'yes' | 'no' }
-      if (data.finished === "yes") {
+      if (data.gameOver === true) {
         successAlert.textContent = "The game is finished!";
+        setWinnerDisp(data.winner);
+        updateScoreDisp(data.winner);
       }
     }
   );
 }
 
 function resetGame() {
+  hostTurn = true;
+
   $(".x-box").removeClass("x-box").addClass("free-box");
   $(".o-box").removeClass("o-box").addClass("free-box");
   enableButtons();
+  clearTurnDisp();
+  resetScore();
 
   // TODO: Remove
   $("#box-1-1").html("");
@@ -205,24 +274,24 @@ function resetGame() {
 }
 
 /**
- * Sends a get request to the given url. Returns nothing if an error occurs (it will print the 
+ * Sends a get request to the given url. Returns nothing if an error occurs (it will print the
  * error though). If no error occurs, it returns the data in the json.
- * 
+ *
  * Expects the data to be in the following format:
  * ```
  * {
  *   result: "error";
  *   error: string;
  * }
- * 
+ *
  * // or
  * {
  *   result: "success";
  *   data: any;
  * }
  * ```
- * @param {String} url 
- * @param {(data: any) => void} onSuccess 
+ * @param {String} url
+ * @param {(data: any) => void} onSuccess
  */
 const get = async (url, onSuccess) => {
   const response = await fetch(url);

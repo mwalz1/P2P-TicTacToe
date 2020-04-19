@@ -43,6 +43,10 @@
       <!-- Tic Tac Toe Board -->
       <hr>
       <div class="container mx-100">
+        <div class="flex justify-center">
+          <h4 id="game-stat-disp" class="invisible">PlaceHolder</h4>
+        </div>
+
         <div id="game-board" class="row row-cols-3">
           <div id="box-0-0" class="col bg-dark free-box border border-light" onclick="makePlay(0, 0)"></div>
           <div id="box-0-1" class="col bg-dark free-box border border-light" onclick="makePlay(0, 1)"></div>
@@ -54,12 +58,19 @@
           <div id="box-2-1" class="col bg-dark free-box border border-light" onclick="makePlay(2, 1)"></div>
           <div id="box-2-2" class="col bg-dark free-box border border-light" onclick="makePlay(2, 2)"></div>
         </div>
+
         <div class="row pt-3">
           <div class="col alert alert-success invisible-if-empty" role="alert" id="success-alert"></div>
         </div>
+
         <div class="row pt-3">
           <div class="col alert alert-danger invisible-if-empty" role="alert" id="error-alert"></div>
         </div>
+
+        <div class="flex justify-center">
+          <h4 id="score-disp">You:0; Opponent:0</h4>
+        </div>
+
         <div class="flex justify-center">
           <button id="reset-game" class="btn btn-dark" onclick="resetGame()" disabled>
             Reset
