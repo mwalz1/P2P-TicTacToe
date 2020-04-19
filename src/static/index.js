@@ -89,10 +89,8 @@ const setWinnerDisp = (winner) => {
     gameStatusDisplay.textContent = "You Won!";
   } else if ((winner === "HOST" && gameState.player === "OPPONENT") || (winner === "OPPONENT" && gameState.player === "HOST")) {
     gameStatusDisplay.textContent = "Better Luck Next Time!";
-  } else if (winner === "NONE") {
-    gameStatusDisplay.textContent = "No Winner for this Game.";
   } else {
-    gameStatusDisplay.textContent = "The game is done!";
+    gameStatusDisplay.textContent = "No Winner for this Game.";
   }
 }
 
