@@ -108,12 +108,11 @@ const clearTurnDisp = () => {
   $("#game-stat-disp").removeClass("visible").addClass("invisible");
 }
 
-const updateScoreDisp = (winner) => {
-  if (gameState.player ==== "HOST") {
-    scoreDisplay.textContent = "You:" + hostScore "; Opponent:" + clientScore;
-  }
-  else {
-    scoreDisplay.textContent = "You:" + clientScore "; Opponent:" + hostScore;
+const updateScoreDisp = () => {
+  if (gameState.player === "HOST") {
+    scoreDisplay.textContent = "You:" + hostScore + "; Opponent:" + clientScore;
+  } else {
+    scoreDisplay.textContent = "You:" + clientScore + "; Opponent:" + hostScore;
   }
 }
 
@@ -151,9 +150,9 @@ const createSource = (url) => {
     }
 
     if (data.gameOver === true) {
-      if (winner === "HOST") {
+      if (data.winner === "HOST") {
         hostScore++;
-      } else if (winner === "OPPONENT") {
+      } else if (data.winner === "OPPONENT") {
         clientScore++;
       }
 
