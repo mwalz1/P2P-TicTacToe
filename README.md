@@ -1,16 +1,11 @@
-# Peer-To-Peer Tic Tac Toe
+# Client-Server Tic-Tac-Toe
 The 2020-2021 SWE4203 lab project!
 
 ## Compilation
-You will need to [install Java](https://www3.ntu.edu.sg/home/ehchua/programming/howto/JDK_Howto.html) before you can compile/run this application. Once installed
+You will need to [install Java](https://www3.ntu.edu.sg/home/ehchua/programming/howto/JDK_Howto.html) before you can compile/run this application. Once installed, just run `javac`.
 
 ```
-$ javac src/*.java
-```
-
-If you are on a Unix based system, you can also you the make command.
-```
-$ make
+javac src/*.java
 ```
 
 ## Running
@@ -25,23 +20,23 @@ This will start a server at [`localhost:3000`](http://localhost:3000) if you use
 > Remember, the host always goes first!
 
 ## Development
-Ideally, you are on a Linux based system. In this situation, you can easily use the following command to start a hot reload server.
+If you are on a Unix based system, you can use the following command to start a hot reload server.
 ```
 # -r because the child process is persistent and -s because we are passing in a shell command
-$ ls src/**/*.java src/**/*.html src/**/*.js src/**/*.css | entr -rs 'make && make serve'
+ls src/**/*.java src/**/*.html src/**/*.js src/**/*.css | entr -rs 'make && make serve'
 ```
 
 Note that you will likely have to install [entr](http://eradman.com/entrproject/) before you can run the following command. It can be easily downloaded and installed using the link above or installed using your system's package manager. The following subsections show the commands for a few operating systems.
 
 ### Ubuntu
 ```
-$ sudo apt-get update -y
-$ sudo apt-get install -y entr
+sudo apt-get update -y
+sudo apt-get install -y entr
 ```
 
 ### Mac OS
 ```
-$ brew install entr
+brew install entr
 ```
 
 ## Swagger
@@ -53,10 +48,10 @@ To view this information, open up `index.html` in the browser of your choice. Al
 #### Generation
 First, ensure `redoc-cli` is installed.
 ```
-$ npm install -g redoc-cli
+npm install -g redoc-cli
 ```
 
 Next, run:
 ```
-$ redoc-cli bundle -o index.html swagger.yml
+redoc-cli bundle -o index.html swagger.yml
 ```

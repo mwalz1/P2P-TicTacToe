@@ -64,6 +64,10 @@ class Game implements Disposer {
       return PlayResult.NOT_YOUR_TURN;
     }
 
+    // TODO remove this
+    // The following code is a bug
+    // We set this.next to the next player *but* it's possible that there are errors
+    // If these errors occur then that player loses their turn
     OutputStream stream;
     if (this.next == Player.HOST) {
       this.next = Player.OPPONENT;
@@ -177,10 +181,15 @@ class Game implements Disposer {
       return true;
     }
 
+    // TODO remove this comment but the following code is a bug
+    // The following check should be
+    // this.game[2][0] == state &&
+    // this.game[1][1] == state &&
+    // this.game[0][2] == state
     if (
-      this.game[2][0] == state &&
+      this.game[2][2] == state &&
       this.game[1][1] == state &&
-      this.game[0][2] == state
+      this.game[0][0] == state
     ) {
       return true;
     }

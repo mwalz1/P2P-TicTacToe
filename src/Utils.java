@@ -1,15 +1,11 @@
-import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 
 import com.sun.net.httpserver.HttpExchange;
@@ -23,10 +19,12 @@ class Utils {
 
   private final static Logger log = Logger.getLogger(Utils.class.getName());
 
-  public static String inputStreamToString(InputStream is) {
-    return new BufferedReader(new InputStreamReader(is)).lines().collect(Collectors.joining("\n"));
-  }
-
+  /**
+   * Return a pseudorandom string of alphanumeric characters. Alpha characters only contain uppercase letters.
+   * 
+   * @param n The length.
+   * @return The string of random characters.
+   */
   public static String getAlphaNumericString(int n) { 
     // create StringBuffer size of AlphaNumericString 
     StringBuilder sb = new StringBuilder(n);
@@ -42,16 +40,15 @@ class Utils {
     return sb.toString(); 
   } 
   
-
-  public static int parsePort(String s, int defaultValue) {
-    try {
-      return Integer.parseInt(s);
-    } catch (NumberFormatException e) {
-      return defaultValue;
-    }
-  }
-
-  public static Map<String, String> queryToMap(final String query) {
+  /**
+   * Extract the URL parameters from the HttpExchange objects. A query string might look like 
+   * `foo=bar&tic=tac`.
+   * 
+   * @param exchange The exchange.
+   * @return The param map.
+   */
+  public static Map<String, String> exchangeToParamMap(final HttpExchange exchange) {
+    String query = exchange.getRequestURI().getQuery();
     Map<String, String> result = new HashMap<>();
     for (String param : query.split("&")) {
       String[] entry = param.split("=");
@@ -65,10 +62,12 @@ class Utils {
     return result;
   }
 
-  public static Map<String, String> exchangeToParamMap(final HttpExchange exchange) {
-    return Utils.queryToMap(exchange.getRequestURI().getQuery());
-  }
-
+  /**
+   * A simple function that will convert a string -> string map into a JSON object.
+   * 
+   * @param map The map.
+   * @return The JSON object string.
+   */
   public static String mapToJSONString(Map<String, String> map) {
     StringBuilder b = new StringBuilder();
     b.append("{ ");
@@ -86,14 +85,59 @@ class Utils {
     return b.toString();
   }
 
-  public static void sendSuccess(HttpExchange exchange, Optional<Map<String, String>> response) {
-    String data = "null";
+  /**
+   * Try to close an object and ignore any exceptions.
+   * 
+   * @param o The closeable object.
+   */
+  public static void tryToClose(Closeable o) {
     try {
-      data = Utils.mapToJSONString(response.get());
-    } catch (NoSuchElementException e) {
-      // do nothing
+      o.close();
+    } catch (IOException e) {
+      // ignore
     }
+  }
 
+  /**
+   * Restrict an HttpHandler to only handle GET methods and to throw 405 errors otherwise.
+   * 
+   * @param handler The handler.
+   * @return The new handler.
+   */
+  public static HttpHandler handleGet(HttpHandler handler) {
+    return (HttpExchange exchange) -> {
+      if (!exchange.getRequestMethod().equals("GET")) {
+        throw new HttpError405();
+      }
+
+      handler.handle(exchange);
+    };
+  }
+
+  /**
+   * Try to get an optional object otherwise throw a 400 error.
+   * 
+   * @param <T>
+   * @param optional The optional object.
+   * @param errorCode The error message to throw if not present.
+   * @return The object.
+   */
+  public static <T> T getOrThrow(Optional<T> optional, String errorCode) {
+    try {
+      return optional.get();
+    } catch (NoSuchElementException e) {
+      throw new HttpError400(errorCode);
+    }
+  }
+
+  /**
+   * Return a 200 response along with a body.
+   * 
+   * @param exchange The exchange object.
+   * @param response The data to convert into a JSON object and send as the HTTP response body.
+   */
+  public static void sendSuccess(HttpExchange exchange, Map<String, String> response) {
+    String data = Utils.mapToJSONString(response);
     StringBuilder body = new StringBuilder();
     body.append("{ ");
     body.append("\"result\": \"success\", ");
@@ -103,27 +147,11 @@ class Utils {
     Utils.sendResponse(exchange, 200, body.toString());
   }
 
-  // TODO maybe just combine the two sendSuccess methods??
-  public static void sendSuccess(HttpExchange exchange, Map<String, String> response) {
-    Utils.sendSuccess(exchange, Optional.of(response));
-  }
-
-  public static void tryToClose(Closeable o) {
-    try {
-      o.close();
-    } catch (IOException e) {
-      // ignore
-    }
-  }
-
-  public static <T> T getOrThrow(Optional<T> optional, String errorCode) {
-    try {
-      return optional.get();
-    } catch (NoSuchElementException e) {
-      throw new HttpError400(errorCode);
-    }
-  }
-
+  /**
+   * Set the correct headers for a Server-Sent Event stream. Also send a response 200.
+   * 
+   * @param exchange The exchange object.
+   */
   public static void sendSseStream(HttpExchange exchange) {
     Headers headers = exchange.getResponseHeaders();
     headers.set("Content-Type", "text/event-stream");
@@ -137,6 +165,13 @@ class Utils {
     }
   }
 
+  /**
+   * Send an HTTP response.
+   * 
+   * @param exchange The exchange object.
+   * @param code The status code. For example, 200 or 400.
+   * @param response The response body.
+   */
   public static void sendResponse(HttpExchange exchange, int code, String response) {
     final OutputStream body = exchange.getResponseBody();
     byte[] bytes = response.getBytes();
@@ -148,15 +183,5 @@ class Utils {
       Utils.log.severe("Unable to send response to " + exchange.getRemoteAddress());
       Utils.log.severe(e.toString());
     }
-  }
-
-  public static HttpHandler handleGet(HttpHandler handler) {
-    return (HttpExchange exchange) -> {
-      if (!exchange.getRequestMethod().equals("GET")) {
-        throw new HttpError405();
-      }
-
-      handler.handle(exchange);
-    };
   }
 }

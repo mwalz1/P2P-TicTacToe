@@ -18,6 +18,14 @@ abstract class HttpError extends RuntimeException {
     this.errorCode = errorCode;
   }
 
+  /**
+   * Wrap an HttpHandler to add a try/catch block. If an HttpError is thrown within the given 
+   * handler, it is caught and the appropriate HTTP response is returned. This makes it very easy
+   * to propagate errors from call stacks.
+   * 
+   * @param handler The handler to wrap.
+   * @return The new handler.
+   */
   static HttpHandler withErrorHandler(HttpHandler handler) {
     return (HttpExchange exchange) -> {
       try {

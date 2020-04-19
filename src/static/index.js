@@ -75,12 +75,9 @@ const createSource = (url) => {
   // TODO error handling what if the url is bad?
   const source = new EventSource(url);
 
-  source.onerror = (event) => {
-    console.log("onerror: " + event, source.readyState, event.eventPhase);
-    if (source.readyState === EventSource.CLOSED) {
-      errorAlert.innerText = "Error connecting to server.";
-      resetGame();
-    }
+  source.onerror = () => {
+    errorAlert.innerText = "Error connecting to server.";
+    resetGame(); // This will close the source
   }
 
   source.onmessage = (event) => {

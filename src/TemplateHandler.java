@@ -3,6 +3,9 @@ import java.nio.file.Paths;
 
 import com.sun.net.httpserver.HttpExchange;
 
+/**
+ * Return specific file.
+ */
 class TemplateHandler extends FileHandler {
   final Path path;
 
