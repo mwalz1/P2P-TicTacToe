@@ -25,6 +25,15 @@ let findGameButton
  */
 let hostGameButton
 
+/**
+ * @type {HTMLButtonElement}
+ */
+let gameStatusDisplay;
+
+/**
+ * @type {HTMLButtonElement}
+ */
+let scoreDisplay
 
 /**
  * @type {HTMLButtonElement}
@@ -50,6 +59,8 @@ window.onload = () => {
   errorAlert = document.getElementById("error-alert");
   findGameButton = document.getElementById("find-game");
   hostGameButton = document.getElementById("host-game");
+  gameStatusDisplay = document.getElementById("game-stat-disp");
+  scoreDisplay = document.getElementById("score-disp");
   resetGameButton = document.getElementById("reset-game");
 }
 
@@ -63,6 +74,50 @@ const enableButtons = () => {
   findGameButton.disabled = false;
   hostGameButton.disabled = false;
   resetGameButton.disabled = true;
+}
+
+const setTurnDisp = () => {
+  if (
+    (gameState.player === "HOST" && hostTurn)
+    || (gameState.player === "OPPONENT" && !hostTurn)
+  ) {
+    gameStatusDisplay.textContent = "Your Move";
+  } else {
+    gameStatusDisplay.textContent = "Opponent's Move";
+  }
+}
+
+const setHostWinnerDisp = () => {
+  if (gameState.player === "HOST") {
+    gameStatusDisplay.textContent = "You Won!";
+  } else {
+    gameStatusDisplay.textContent = "Better Luck Next Time";
+  }
+}
+
+const setClientWinnerDisp = () => {
+  if (gameState.player === "OPPONENT") {
+    gameStatusDisplay.textContent = "You Won!";
+  } else {
+    gameStatusDisplay.textContent = "Better Luck Next Time";
+  }
+}
+
+const clearTurnDisp = () => {
+  gameStatusDisplay.textContent = null;
+}
+
+const updateScore = () => {
+  if (gameState.player ==== "HOST") {
+    scoreDisplay.textContent = "You:" + hostScore "\t\tOpponent:" + clientScore;
+  }
+  else {
+    scoreDisplay.textContent = "You:" + clientScore "\t\tOpponent:" + hostScore;
+  }
+}
+
+const resetScore = () => {
+  scoreDisplay.textContent = "You:0\t\tOpponent:0";
 }
 
 /**
@@ -114,7 +169,9 @@ const hostGame = async () => {
       gameCode: data.gameCode,
       eventSource: createSource(`/api/join-as-host?gameCode=${data.gameCode}`),
     };
-    
+
+    setTurnDisp();
+    resetScore();
     disableButtons();
     accessCodeDisplay.textContent = data.accessCode;
   });
@@ -135,6 +192,8 @@ const findGame = async () => {
       eventSource: createSource(`/api/join-as-opponent?gameCode=${data.gameCode}`),
     }
 
+    setTurnDisp();
+    resetScore();
     disableButtons();
   });
 }
@@ -152,10 +211,13 @@ const placeMarker = async (x, y, state) => {
   } else {
     $(`#box-${x}-${y}`).removeClass("free-box").addClass("o-box");
   }
+
+  hostTurn = !hostTurn;
+  setTurnDisp();
 }
 
 /**
- * 
+ *
  * @param {0 | 1 | 2} x The row index.
  * @param {0 | 1 | 2} y The column index.
  */
@@ -175,6 +237,21 @@ const makePlay = async (x, y) => {
       }
       // data is { finished: 'yes' | 'no' }
       // TODO Use the data to set the game to finished or not maybe?
+      if (data.finished === "yes") {
+        if (!hostTurn) {
+          setHostWinnerDisp();
+          hostScore++;
+        }
+        else {
+          setClientWinnerDisp();
+          clientScore++;
+        }
+
+        updateScore();
+      }
+      else {
+
+      }
     }
   );
 }
@@ -192,16 +269,16 @@ function resetGame() {
 }
 
 /**
- * Sends a get request to the given url. Returns nothing if an error occurs (it will print the 
+ * Sends a get request to the given url. Returns nothing if an error occurs (it will print the
  * error though). If no error occurs, it returns the data in the json.
- * 
+ *
  * Expects the data to be in the following format:
  * ```
  * {
  *   result: "error";
  *   error: string;
  * }
- * 
+ *
  * // or
  * {
  *   result: "success";
@@ -209,8 +286,8 @@ function resetGame() {
  * }
  * ```
  * @template T
- * @param {String} url 
- * @param {(data: T) => void} onSuccess 
+ * @param {String} url
+ * @param {(data: T) => void} onSuccess
  * @returns {{ result: "error", error: string } | { result: "success", data: T }}
  */
 const get = async (url, onSuccess) => {

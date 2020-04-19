@@ -15,7 +15,7 @@
 
       <!-- Connecting Component -->
       <br>
-      <h3>Connection Setup</h1>
+      <h3>Connection Setup</h3>
 
       <!-- Hosting Row -->
       <div class="row">
@@ -43,6 +43,10 @@
       <!-- Tic Tac Toe Board -->
       <hr>
       <div class="container mx-100">
+        <div class="flex justify-center">
+          <h4 id="game-stat-disp"></h4>
+        </div>
+
         <div id="game-board" class="row row-cols-3">
           <div id="box-0-0" class="col bg-dark free-box border border-light" onclick="makePlay(0, 0)"></div>
           <div id="box-0-1" class="col bg-dark free-box border border-light" onclick="makePlay(0, 1)"></div>
@@ -57,6 +61,11 @@
         <div class="row pt-3">
           <div class="col alert alert-danger invisible-if-empty" role="alert" id="error-alert"></div>
         </div>
+
+        <div id="score-disp" class="flex justify-center">
+          <h4></h4>
+        </div>
+
         <div class="flex justify-center">
           <button id="reset-game" class="btn btn-dark" onclick="resetGame()" disabled>
             Reset
