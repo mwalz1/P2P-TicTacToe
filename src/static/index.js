@@ -36,6 +36,14 @@ let resetGameButton
  */
 let gameState
 
+let gameOver = false;
+let hostTurn = true;
+
+let boxCount = 0;
+let hostScore = 0;
+let clientScore = 0;
+
+
 window.onload = () => {
   accessCodeDisplay = document.getElementById("access-code-display");
   accessCode = document.getElementById("access-code");
@@ -58,10 +66,10 @@ const enableButtons = () => {
 }
 
 /**
- * Create a SSE listener to listen for events from the game server. Each event represents a move 
+ * Create a SSE listener to listen for events from the game server. Each event represents a move
  * made by the opposing player.
- * 
- * @param {String} url 
+ *
+ * @param {String} url
  */
 const createSource = (url) => {
   // TODO error handling what if the url is bad?
@@ -126,16 +134,16 @@ const findGame = async () => {
       gameCode: data.gameCode,
       eventSource: createSource(`/api/join-as-opponent?gameCode=${data.gameCode}`),
     }
-    
+
     disableButtons();
   });
 }
 
 /**
- * 
- * @param {0 | 1 | 2} x 
- * @param {0 | 1 | 2} y 
- * @param {"X" | "O"} state 
+ *
+ * @param {0 | 1 | 2} x
+ * @param {0 | 1 | 2} y
+ * @param {"X" | "O"} state
  */
 const placeMarker = async (x, y, state) => {
   console.log(`Placing ${state} at ${x},${y}.`);
