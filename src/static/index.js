@@ -95,23 +95,17 @@ const setTurnDisp = () => {
   }
 }
 
-const setHostWinnerDisp = () => {
+const setWinnerDisp = (winner) => {
   $("#game-stat-disp").removeClass("invisible").addClass("visible");
 
-  if (gameState.player === "HOST") {
+  if((winner === "HOST" && gameState.player === "HOST") || (winner === "OPPONENT" && gameState.player === "OPPONENT")) {
     gameStatusDisplay.textContent = "You Won!";
-  } else {
+  } else if ((winner === "HOST" && gameState.player === "OPPONENT") || (winner === "OPPONENT" && gameState.player === "HOST")) {
     gameStatusDisplay.textContent = "Better Luck Next Time";
-  }
-}
-
-const setClientWinnerDisp = () => {
-  $("#game-stat-disp").removeClass("invisible").addClass("visible");
-
-  if (gameState.player === "OPPONENT") {
-    gameStatusDisplay.textContent = "You Won!";
-  } else {
-    gameStatusDisplay.textContent = "Better Luck Next Time";
+  } else if (winner === "TIE") {
+    gameStatusDisplay.textContent = "It's a tie!";
+  } else if () {
+    gameStatusDisplay.textContent = "No Winner for this Game.";
   }
 }
 
@@ -150,15 +144,10 @@ const createSource = (url) => {
 
     if (data.finished === "yes") {
       successAlert.textContent = "The game is finished!";
+    }
 
-      if (!hostTurn) {
-        setHostWinnerDisp();
-        hostScore++;
-      }
-      else {
-        setClientWinnerDisp();
-        clientScore++;
-      }
+    if (data.gameOver === true) {
+      setWinnerDisp(data.winner);
     }
   }
 
@@ -246,15 +235,6 @@ const makePlay = async (x, y) => {
       // data is { finished: 'yes' | 'no' }
       if (data.finished === "yes") {
         successAlert.textContent = "The game is finished!";
-
-        if (!hostTurn) {
-          setHostWinnerDisp();
-          hostScore++;
-        }
-        else {
-          setClientWinnerDisp();
-          clientScore++;
-        }
       }
     }
   );
