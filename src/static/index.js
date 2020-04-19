@@ -235,10 +235,12 @@ const get = async (url, onSuccess) => {
   } catch (e) {
     console.error(`Invalid json while fetching ${url}: ${e}`);
     errorAlert.innerText = `Bad JSON from ${url}: ${response.text()}`;
+    return;
   }
 
   if (json.result === "error") {
     errorAlert.innerText = `Bad request to ${url}: ${json.error}`;
+    return;
   }
 
   console.log(`Data from ${url}: `, json.data);
