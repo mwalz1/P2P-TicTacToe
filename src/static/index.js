@@ -30,6 +30,15 @@ let findGameButton
  */
 let hostGameButton
 
+/**
+ * @type {HTMLButtonElement}
+ */
+let gameStatusDisplay;
+
+/**
+ * @type {HTMLButtonElement}
+ */
+let scoreDisplay
 
 /**
  * @type {HTMLButtonElement}
@@ -55,6 +64,8 @@ window.onload = () => {
   errorAlert = document.getElementById("error-alert");
   findGameButton = document.getElementById("find-game");
   hostGameButton = document.getElementById("host-game");
+  gameStatusDisplay = document.getElementById("game-stat-disp");
+  scoreDisplay = document.getElementById("score-disp");
   resetGameButton = document.getElementById("reset-game");
   successAlert = document.getElementById("success-alert");
 }
@@ -69,6 +80,17 @@ const enableButtons = () => {
   findGameButton.disabled = false;
   hostGameButton.disabled = false;
   resetGameButton.disabled = true;
+}
+
+const setTurnDisp = () => {
+  if (
+    (gameState.player === "HOST" && hostTurn)
+    || (gameState.player === "OPPONENT" && !hostTurn)
+  ) {
+    gameStatusDisplay.textContent = "Your Move";
+  } else {
+    gameStatusDisplay.textContent = "Opponent's Move";
+  }
 }
 
 /**
@@ -121,7 +143,8 @@ const hostGame = async () => {
       gameCode: data.gameCode,
       eventSource: createSource(`/api/join-as-host?gameCode=${data.gameCode}`),
     };
-    
+
+    setTurnDisp();
     disableButtons();
     accessCodeDisplay.textContent = data.accessCode;
   });
@@ -142,6 +165,7 @@ const findGame = async () => {
       eventSource: createSource(`/api/join-as-opponent?gameCode=${data.gameCode}`),
     }
 
+    setTurnDisp();
     disableButtons();
   });
 }
@@ -162,7 +186,7 @@ const placeMarker = async (x, y, state) => {
 }
 
 /**
- * 
+ *
  * @param {0 | 1 | 2} x The row index.
  * @param {0 | 1 | 2} y The column index.
  */
@@ -204,24 +228,24 @@ function resetGame() {
 }
 
 /**
- * Sends a get request to the given url. Returns nothing if an error occurs (it will print the 
+ * Sends a get request to the given url. Returns nothing if an error occurs (it will print the
  * error though). If no error occurs, it returns the data in the json.
- * 
+ *
  * Expects the data to be in the following format:
  * ```
  * {
  *   result: "error";
  *   error: string;
  * }
- * 
+ *
  * // or
  * {
  *   result: "success";
  *   data: any;
  * }
  * ```
- * @param {String} url 
- * @param {(data: any) => void} onSuccess 
+ * @param {String} url
+ * @param {(data: any) => void} onSuccess
  */
 const get = async (url, onSuccess) => {
   const response = await fetch(url);
