@@ -123,7 +123,7 @@ const updateScoreDisp = (winner) => {
     }
   }
 
-  if (gameState.player == "HOST") {
+  if (gameState.player === "HOST") {
     scoreDisplay.textContent = "You:" + hostScore + "; Opponent:" + clientScore;
   } else {
     scoreDisplay.textContent = "You:" + clientScore + "; Opponent:" + hostScore;
@@ -273,7 +273,7 @@ function resetGame() {
   // TODO: Remove
   $("#box-1-1").html("");
   // We don't reset the error alert since an error may have caused the reset
-  // and we error to still show after the game has reset 
+  // and we error to still show after the game has reset
   successAlert.textContent = "";
   accessCodeDisplay.textContent = "";
   gameState.eventSource.close();
