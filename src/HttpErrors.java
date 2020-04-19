@@ -31,7 +31,7 @@ abstract class HttpError extends RuntimeException {
       try {
         handler.handle(exchange);
       } catch (HttpError e) {
-        Map<String, String> body = new HashMap<>();
+        Map<String, Object> body = new HashMap<>();
         body.put("result", "error");
         body.put("error", e.errorCode);
 

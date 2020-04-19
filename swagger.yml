@@ -90,6 +90,8 @@ paths:
             $ref: "#/definitions/JoinError"
         200:
           description: "SSE stream."
+          schema:
+            $ref: "#/definitions/SSEStreamEvent"
   /join-as-opponent:
     get:
       tags:
@@ -181,11 +183,32 @@ definitions:
         description: "The data object."
         type: "object"
         properties:
-          finished:
-            description: "Whether the game is finished."
-            example: "yes"
+          gameOver:
+            description: "Whether the game has finished."
+            example: true
+            type: "boolean"
+          result:
+            description: "Who won the game. Irrelevant is \"gameOver\" is set to false."
+            example: "TIE"
             type: "string"
-            enum: [yes, no]
+            enum: [NONE, OPPONENT, HOST]
+  SSEStreamEvent:
+    type: "object"
+    properties:
+      location:
+        type: "array"
+        description: "An array of length 2 where the first element is the row index and the second element is the column index."
+        items:
+          type: "integer"
+      gameOver:
+        description: "Whether the game has finished."
+        example: true
+        type: "boolean"
+      result:
+        description: "Who won the game. Irrelevant is \"gameOver\" is set to false."
+        example: "TIE"
+        type: "string"
+        enum: [NONE, OPPONENT, HOST]
   MoveError:
     type: "object"
     properties:
