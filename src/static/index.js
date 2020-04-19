@@ -56,13 +56,13 @@ window.onload = () => {
   resetGameButton = document.getElementById("reset-game");
 }
 
-const disableButtons = () => {
+const disableConnectionButtons = () => {
   findGameButton.disabled = true;
   hostGameButton.disabled = true;
   resetGameButton.disabled = false;
 }
 
-const enableButtons = () => {
+const enableConnectionButtons = () => {
   findGameButton.disabled = false;
   hostGameButton.disabled = false;
   resetGameButton.disabled = true;
@@ -115,7 +115,7 @@ const createSource = (url) => {
 
   source.onmessage = (event) => {
     /**
-     * @type {{ location: [number, number], finished: "yes" | "no" }}
+     * @type {{ location: [number, number], gameOver: boolean, winner: "HOST" | "OPPONENT" | "NONE" }}
      */
     const data = JSON.parse(event.data);
     console.log(data);
@@ -150,7 +150,7 @@ const hostGame = async () => {
     };
 
     setTurnDisp();
-    disableButtons();
+    disableConnectionButtons();
     accessCodeDisplay.textContent = data.accessCode;
   });
 }
@@ -171,7 +171,7 @@ const findGame = async () => {
     }
 
     setTurnDisp();
-    disableButtons();
+    disableConnectionButtons();
   });
 }
 
@@ -225,9 +225,8 @@ function resetGame() {
 
   $(".x-box").removeClass("x-box").addClass("free-box");
   $(".o-box").removeClass("o-box").addClass("free-box");
-  enableButtons();
+  enableConnectionButtons();
   clearTurnDisp();
-  resetScore();
 
   // TODO: Remove
   $("#box-1-1").html("");
